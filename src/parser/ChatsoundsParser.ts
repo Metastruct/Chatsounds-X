@@ -1,5 +1,5 @@
 import Chatsound from "./Chatsound";
-import { ChatsoundContextModifier } from "./Modifier";
+import { ChatsoundContextModifier } from "./ChatsoundModifier";
 
 const MODIFIER_CHARS = ["^","%","#"];
 export default class ChatsoundsParser {
@@ -26,7 +26,7 @@ export default class ChatsoundsParser {
 	// to access the higher level modifiers use the parentContext property
 	private parseContextModifiers(input: string): Array<ChatsoundContextModifier> {
 		// look for "(" and ")" because they create contextual modifiers
-		if (input.match(/\(\)/g)) return [new ChatsoundContextModifier(input, [])];
+		if (!input.match(/\(\)/g)) return [new ChatsoundContextModifier(input, [])];
 
 		const ret: Array<ChatsoundContextModifier> = [];
 		// TODO

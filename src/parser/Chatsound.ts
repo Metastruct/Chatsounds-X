@@ -1,4 +1,4 @@
-import { IChatsoundModifier } from "./Modifier";
+import { IChatsoundModifier } from "./ChatsoundModifier";
 
 export default class Chatsound {
 	public url: string;
