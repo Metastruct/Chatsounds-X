@@ -1,0 +1,24 @@
+{
+  "name": "chatsounds-x",
+  "version": "1.0.0",
+  "description": "[WIP] A TypeScript interface / process that allows playing chatsounds from potentially everywhere",
+  "main": "index.js",
+  "dependencies": {
+    "typescript": "^4.3.4"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Metastruct/Chatsounds-X.git"
+  },
+  "author": "Earu",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Metastruct/Chatsounds-X/issues"
+  },
+  "homepage": "https://github.com/Metastruct/Chatsounds-X#readme"
+}
