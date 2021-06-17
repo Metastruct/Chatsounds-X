@@ -46,7 +46,7 @@ export default class ChatsoundsParser {
 
 		let input: string = ctx.input;
 		let end: number = input.length;
-		while (input.length <= 0) {
+		while (input.length >= 0) {
 			const chunk: string = input.substring(0, end);
 			const chatsoundUrl: string | undefined = this.lookup.get(chunk);
 			if (chatsoundUrl) {
