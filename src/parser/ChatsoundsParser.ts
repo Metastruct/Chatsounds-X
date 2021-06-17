@@ -24,7 +24,7 @@ export default class ChatsoundsParser {
 
 	// this only returns the lowest level context modifiers as a flat array
 	// to access the higher level modifiers use the parentContext property
-	public parseContextModifiers(input: string): Array<ChatsoundContextModifier> {
+	private parseContextModifiers(input: string): Array<ChatsoundContextModifier> {
 		// look for "(" and ")" because they create contextual modifiers
 		if (input.match(/\(\)/g)) return [new ChatsoundContextModifier(input, [])];
 
@@ -34,12 +34,12 @@ export default class ChatsoundsParser {
 		return [];
 	}
 
-	public parseModifiers() {
+	private parseModifiers() {
 		// TODO
 		// PARSE LEGACY MODIFIERS
 	}
 
-	public parseContext(ctx: ChatsoundContextModifier): Array<Chatsound> {
+	private parseContext(ctx: ChatsoundContextModifier): Array<Chatsound> {
 		const ret: Array<Chatsound> = [];
 		const words = ctx.input.split(" ");
 		const ctxModifiers = ctx.getAllModifiers();
