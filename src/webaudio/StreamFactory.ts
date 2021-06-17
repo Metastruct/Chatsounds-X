@@ -3,8 +3,9 @@ import Stream from "./Stream";
 export default class StreamFactory {
 	private bufferCache: Map<string, AudioBuffer> = new Map<string, AudioBuffer>();
 	private async downloadBuffer(audio: AudioContext, url: string, skipCache: boolean): Promise<AudioBuffer> {
-		if (!skipCache && this.bufferCache.has(url)) {
-			return this.bufferCache.get(url);
+		const buffer: AudioBuffer | undefined = this.bufferCache.get(url);
+		if (!skipCache && buffer) {
+			return buffer;
 		}
 
 		return new Promise((resolve, reject) => {

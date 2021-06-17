@@ -21,9 +21,9 @@ export default class Stream {
 	// echo
 	public useEcho: boolean = false;
 	public echoFeedback: number = 0.75;
-	public echoBuffer: AudioBuffer;
+	public echoBuffer: AudioBuffer | undefined = undefined;
 	public echoVolume: number = 0;
-	public echoDelay: number;
+	public echoDelay: number = 0;
 
 	// volume
 	public volumeBoth: number = 1;
@@ -33,10 +33,10 @@ export default class Stream {
 	public volumeRightSmooth: number = 0;
 
 	// lfo
-	public lfoVolumeTime: number;
-	public lfoVolumeAmount: number;
-	public lfoPitchTime: number;
-	public lfoPitchAmount: number;
+	public lfoVolumeTime: number = 1;
+	public lfoVolumeAmount: number = 0;
+	public lfoPitchTime: number = 1;
+	public lfoPitchAmount: number = 0;
 
 	constructor(buffer: any, audio: AudioContext, url: string) {
 		this.buffer = buffer;
@@ -45,7 +45,7 @@ export default class Stream {
 		this.url = url;
 	}
 
-	public play(stop: boolean, position: number): void {
+	public play(stop?: boolean, position?: number): void {
 		if (position !== undefined) {
 			this.position = position;
 		}
@@ -53,7 +53,7 @@ export default class Stream {
 		this.paused = !stop;
 	}
 
-	public usefft(_: boolean): void {
+	public useFFT(_: boolean): void {
 		// later
 	}
 
@@ -67,14 +67,12 @@ export default class Stream {
 	}
 
 	public setEchoDelay(delay: number): void {
-		if (
-			this.useEcho &&
-			(!this.echoBuffer || delay != this.echoBuffer.length)
-		) {
-			var size = 1;
+		if (this.useEcho && (!this.echoBuffer || delay != this.echoBuffer.length)) {
+			let size: number = 1;
 			while ((size <<= 1) < delay);
 			this.echoBuffer = this.audio.createBuffer(2, size, this.audio.sampleRate);
 		}
+
 		this.echoDelay = delay;
 	}
 }
