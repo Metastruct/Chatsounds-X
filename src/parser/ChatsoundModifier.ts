@@ -4,12 +4,12 @@ export interface IChatsoundModifier {
 }
 
 export class ChatsoundContextModifier {
-	public input: string;
+	public content: string;
 	public modifiers: Array<IChatsoundModifier>;
 	public parentContext?: ChatsoundContextModifier;
 
-	constructor(input: string, modifiers: Array<IChatsoundModifier>) {
-		this.input = input;
+	constructor(content: string, modifiers: Array<IChatsoundModifier>) {
+		this.content = content;
 		this.modifiers = modifiers;
 	}
 
