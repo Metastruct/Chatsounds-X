@@ -45,12 +45,17 @@ export default class Stream {
 		this.url = url;
 	}
 
-	public play(stop?: boolean, position?: number): void {
+	public play(): void {
+		this.position = 0;
+		this.paused = false;
+	}
+
+	public stop(position?: number): void {
 		if (position !== undefined) {
 			this.position = position;
 		}
 
-		this.paused = !stop;
+		this.paused = true;
 	}
 
 	public useFFT(_: boolean): void {
