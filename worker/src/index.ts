@@ -2,6 +2,8 @@ import Chatsound from "./parser/Chatsound";
 import ChatsoundsParser from "./parser/ChatsoundsParser";
 import WebAudio from "./webaudio/WebAudio";
 
+type ChatsoundQuery = { input: string, lookup: Map<string, string> };
+
 async function exampleStream(): Promise<void> {
 	const webAudio: WebAudio = new WebAudio();
 
@@ -11,15 +13,12 @@ async function exampleStream(): Promise<void> {
 	webAudio.close();
 }
 
-function exampleParse(input: string): Array<Chatsound> {
-	const lookup: Map<string, string> = new Map<string, string>();
-	const parser: ChatsoundsParser = new ChatsoundsParser(lookup);
-	const chatsounds: Array<Chatsound> = parser.parse(input);
+export default function handler(query: ChatsoundQuery): Array<string> {
+	const parser: ChatsoundsParser = new ChatsoundsParser(query.lookup);
+	const chatsounds: Array<Chatsound> = parser.parse(query.input);
 	for (const cs of chatsounds) {
 		console.log(cs);
 	}
 
-	return chatsounds;
+	return chatsounds.map(cs => cs.name);
 }
-
-exampleParse("awdwad^50 lol%25 (h why are we still here):pitch(-1) hello there:echo");
