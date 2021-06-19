@@ -2,6 +2,33 @@ import Chatsound from "./Chatsound";
 import { ChatsoundContextModifier as ChatsoundModifierContext, IChatsoundModifier } from "./ChatsoundModifier";
 import * as modifiers from "./modifiers";
 
+/*
+	CURRENT IMPL:
+		1) Parse contexual modifiers e.g (awdawd):echo(0, 1)
+		2) Parse chatsound in the context of the modifier
+		3) Apply the context modifiers to each chatsound
+		4) Repeat 1) 2) 3) until theres nothing left to parse
+		5) return the list of parsed chatsounds with modifiers applied to them
+
+	PROBLEMS:
+		- Legacy modifiers are chatsound-aware but not context-aware, meaning they always use the last chatsound parsed
+		- Contextual modifiers can be used in a legacy fashion: awdawd:echo
+		- Arguments for contextual modifiers also contain parenthesis and can have spaces
+		- Lua expressions in contextual modifiers
+
+	POSSIBLE SOLUTION:
+		Have a list of modifiers with their names, build a global regex out of the names and patterns for these modifiers
+		For each match we parse the string for chatsound before the modifiers word per word
+		If the the first character before the modifier is ")" we apply the modifier to each chatsound parsed up until we find "("
+		If there is no ")" then apply the modifier only to the last chatsound parsed
+		Return the list of parsed chatsounds along with their modifiers
+
+	=> TODO
+	-> Implement lookup table for sounds / urls
+	-> Implement modifiers
+
+*/
+
 export default class ChatsoundsParser {
 	private lookup: Map<string, string>;
 	private modifierLookup: Map<string, any>;
@@ -44,33 +71,6 @@ export default class ChatsoundsParser {
 		this.pattern = new RegExp(`(:?${modernPattern})|(:?${legacyPattern})`, "giu");
 	}
 
-	/*
-		CURRENT IMPL:
-			1) Parse contexual modifiers e.g (awdawd):echo(0, 1)
-			2) Parse chatsound in the context of the modifier
-			3) Apply the context modifiers to each chatsound
-			4) Repeat 1) 2) 3) until theres nothing left to parse
-			5) return the list of parsed chatsounds with modifiers applied to them
-
-		PROBLEMS:
-			- Legacy modifiers are chatsound-aware but not context-aware, meaning they always use the last chatsound parsed
-			- Contextual modifiers can be used in a legacy fashion: awdawd:echo
-			- Arguments for contextual modifiers also contain parenthesis and can have spaces
-			- Lua expressions in contextual modifiers
-
-		POSSIBLE SOLUTION:
-			Have a list of modifiers with their names, build a global regex out of the names and patterns for these modifiers
-			For each match we parse the string for chatsound before the modifiers word per word
-			If the the first character before the modifier is ")" we apply the modifier to each chatsound parsed up until we find "("
-			If there is no ")" then apply the modifier only to the last chatsound parsed
-			Return the list of parsed chatsounds along with their modifiers
-
-		=> TODO
-		-> Implement lookup table for sounds / urls
-		-> Implement modifiers
-
-	*/
-
 	private tryGetModifier(regexResult: RegExpMatchArray): IChatsoundModifier | undefined {
 		if (!regexResult.groups) return undefined;
 
@@ -99,7 +99,7 @@ export default class ChatsoundsParser {
 			} else {
 				const ctx = new ChatsoundModifierContext(precedingChunk, modifier ? [modifier] : []);
 				ret = ret.concat(this.parseContext(ctx));
-				start = (match.index ?? 0) + (match.length - 1);
+				start = (match.index ? match.index : 0) + (match.length - 1);
 			}
 		}
 
