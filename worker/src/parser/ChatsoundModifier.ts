@@ -1,6 +1,7 @@
 export interface IChatsoundModifier {
 	name: string;
-	legacyPattern?: RegExp;
+	legacyCharacter?: string;
+	escapeLegacy?: boolean;
 	process(soundString: string): void;
 }
 
