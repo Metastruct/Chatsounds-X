@@ -1,16 +1,41 @@
 import Chatsound from "./Chatsound";
 import { ChatsoundContextModifier as ChatsoundModifierContext, IChatsoundModifier } from "./ChatsoundModifier";
 
-const MODIFIER_CHARS = ["^","%","#"];
 export default class ChatsoundsParser {
 	private lookup: Map<string, string>;
 
 	constructor(lookup: Map<string, string>) {
 		this.lookup = lookup;
-		// TODO
-		// IMPLEMENT LOOKUP TABLE FROM GITHUB SOUND REPOS
 	}
 
+	/*
+		CURRENT IMPL:
+			1) Parse contexual modifiers e.g (awdawd):echo(0, 1)
+			2) Parse chatsound in the context of the modifier
+			3) Apply the context modifiers to each chatsound
+			4) Repeat 1) 2) 3) until theres nothing left to parse
+			5) return the list of parsed chatsounds with modifiers applied to them
+
+		PROBLEMS:
+			- Legacy modifiers are chatsound-aware but not context-aware, meaning they always use the last chatsound parsed
+			- Contextual modifiers can be used in a legacy fashion: awdawd:echo
+			- Arguments for contextual modifiers also contain parenthesis and can have spaces
+			- Lua expressions in contextual modifiers
+
+		POSSIBLE SOLUTION:
+			Have a list of modifiers with their names, build a global regex out of the names and patterns for these modifiers
+			For each match we parse the string for chatsound before the modifiers word per word
+			If the the first character before the modifier is ")" we apply the modifier to each chatsound parsed up until we find "("
+			If there is no ")" then apply the modifier only to the last chatsound parsed
+			Return the list of parsed chatsounds along with their modifiers
+
+		=> TODO
+		-> Implement lookup table for sounds / urls
+		-> Implement modifiers
+
+	*/
+
+	// EXPERIMENTAL
 	public parse(input: string): Array<Chatsound> {
 		let ret: Array<Chatsound> = [];
 
@@ -22,8 +47,7 @@ export default class ChatsoundsParser {
 		return ret;
 	}
 
-	// this only returns the lowest level context modifiers as a flat array
-	// to access the higher level modifiers use the parentContext property
+	// EXPERIMENTAL
 	private parseModifiers(input: string): Array<ChatsoundModifierContext> {
 		// look for "(" and ")" because they create contextual modifiers
 		if (!input.match(/\(\)/g)) return [new ChatsoundModifierContext(input, [])];
@@ -31,34 +55,37 @@ export default class ChatsoundsParser {
 		const ret: Array<ChatsoundModifierContext> = [];
 
 		let depth: number = 0;
+		let depthTmp: Map<number, ChatsoundModifierContext> = new Map<number, ChatsoundModifierContext>();
+		let isModifier: boolean = false;
+		let lastCtx: ChatsoundModifierContext | undefined = undefined;
 		for (let i = 0; i < input.length; i++) {
 			const char: string = input[i];
 
-			// probably need to parse everything parenthesis-wise into chunks
-			// then make sense out of each of them (?)
+			if (!isModifier) {
+				if (char === "(") {
+					depth++;
+				} else if (char === ")") {
+					depth--;
 
-			/*if (char === ")") {
-				depth++;
+					const ctx: ChatsoundModifierContext | undefined = depthTmp.get(depth);
+					lastCtx = ctx;
+					if (ctx) {
+						ctx.parentContext = depthTmp.get(depth - 1);
+						ret.push(ctx);
+						depthTmp.delete(depth);
+					}
+				}
 			}
 
-			if (char === ")") {
-				depth--;
-
-				const nextChar: string = input[i + 1];
-				if (nextChar === ":") {
-
-				}
-			}*/
+			const ctx: ChatsoundModifierContext = depthTmp.get(depth) ?? new ChatsoundModifierContext("", []);
+			ctx.content += char;
+			depthTmp.set(depth, ctx);
 		}
 
-		return [];
+		return ret;
 	}
 
-	private parseLegacyModifiers() {
-		// TODO
-		// PARSE LEGACY MODIFIERS
-	}
-
+	// EXPERIMENTAL
 	private parseContext(ctx: ChatsoundModifierContext): Array<Chatsound> {
 		const ret: Array<Chatsound> = [];
 		const modifiers: Array<IChatsoundModifier> = ctx.getAllModifiers();
