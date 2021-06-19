@@ -4,12 +4,44 @@ import * as modifiers from "./modifiers";
 
 export default class ChatsoundsParser {
 	private lookup: Map<string, string>;
+	private modifierLookup: Map<string, any>;
+	private pattern: RegExp;
 
 	constructor(lookup: Map<string, string>) {
 		this.lookup = lookup;
-		//for (const modifier of modifiers) {
+		this.modifierLookup = new Map<string, any>();
+		this.pattern = /./;
 
-		//}
+		const modifierClasses = Object.entries(modifiers);
+		this.buildModifierLookup(modifierClasses);
+		this.buildModifierPatterns(modifierClasses);
+	}
+
+	private buildModifierLookup(modifierClasses: Array<any>): void {
+		for (const [_, modifierClass] of modifierClasses) {
+			const modifier: IChatsoundModifier = new modifierClass();
+			if (modifier.legacyCharacter) {
+				this.modifierLookup.set(modifier.legacyCharacter, modifierClass);
+			}
+
+			if (modifier.name.length > 0) {
+				this.modifierLookup.set(`:${modifier.name}(`, modifierClass);
+			}
+		}
+	}
+
+	private buildModifierPatterns(modifierClasses: Array<any>): void {
+		const instances: Array<IChatsoundModifier> = modifierClasses.map(x => new x[1]());
+		const modernPattern: string = "\\w\\)?:(" + instances
+			.filter(modifier => modifier.name.length > 0)
+			.map(modifier => modifier.name)
+			.join("|") + ")(\\(([0-9]|\\.|\\s|,|-)*\\))?(:?\\w|\\b)";
+		const legacyPattern: string = "" + instances
+			.filter(modifier => modifier.legacyCharacter)
+			.map(modifier => modifier.escapeLegacy ? "\\" + modifier.legacyCharacter : modifier.legacyCharacter)
+			.join("|") + "([0-9]+)?(:?\\w|\\b)";
+
+		this.pattern = new RegExp(`(:?${modernPattern})|(:?${legacyPattern})`, "giu");
 	}
 
 	/*
@@ -39,57 +71,45 @@ export default class ChatsoundsParser {
 
 	*/
 
-	// EXPERIMENTAL
+	private tryGetModifier(regexResult: RegExpMatchArray): IChatsoundModifier | undefined {
+		if (!regexResult.groups) return undefined;
+
+		const entireMatch: string = regexResult.groups[0];
+		const modifierName: string = regexResult.groups[2];
+		if (entireMatch.includes(":") && this.modifierLookup.has(modifierName)) {
+			return this.modifierLookup.get(modifierName);
+		}
+
+		return this.modifierLookup.get(entireMatch);
+	}
+
 	public parse(input: string): Array<Chatsound> {
 		let ret: Array<Chatsound> = [];
+		let hadMatches: boolean = false;
+		let start: number = 0;
+		for (const match of input.matchAll(this.pattern)) {
+			hadMatches = true;
 
-		const modifierContexts: Array<ChatsoundModifierContext> = this.parseModifiers(input);
-		for (const ctx of modifierContexts) {
-			ret = ret.concat(this.parseContext(ctx));
-		}
-
-		return ret;
-	}
-
-	// EXPERIMENTAL
-	private parseModifiers(input: string): Array<ChatsoundModifierContext> {
-		// look for "(" and ")" because they create contextual modifiers
-		if (!input.match(/\(\)/g)) return [new ChatsoundModifierContext(input, [])];
-
-		const ret: Array<ChatsoundModifierContext> = [];
-
-		let depth: number = 0;
-		let depthTmp: Map<number, ChatsoundModifierContext> = new Map<number, ChatsoundModifierContext>();
-		let isModifier: boolean = false;
-		let lastCtx: ChatsoundModifierContext | undefined = undefined;
-		for (let i = 0; i < input.length; i++) {
-			const char: string = input[i];
-
-			if (!isModifier) {
-				if (char === "(") {
-					depth++;
-				} else if (char === ")") {
-					depth--;
-
-					const ctx: ChatsoundModifierContext | undefined = depthTmp.get(depth);
-					lastCtx = ctx;
-					if (ctx) {
-						ctx.parentContext = depthTmp.get(depth - 1);
-						ret.push(ctx);
-						depthTmp.delete(depth);
-					}
-				}
+			const modifier: IChatsoundModifier | undefined = this.tryGetModifier(match);
+			const precedingChunk: string = input.substring(start, match.index);
+			if (precedingChunk.match(/\)\s*/)) {
+				const index: number = precedingChunk.lastIndexOf("(");
+				const subChunk: string = input.substr(index, match.index);
+				//recursive logic here...
+			} else {
+				const ctx = new ChatsoundModifierContext(precedingChunk, modifier ? [modifier] : []);
+				ret = ret.concat(this.parseContext(ctx));
+				start = (match.index ?? 0) + (match.length - 1);
 			}
+		}
 
-			const ctx: ChatsoundModifierContext = depthTmp.get(depth) ?? new ChatsoundModifierContext("", []);
-			ctx.content += char;
-			depthTmp.set(depth, ctx);
+		if (!hadMatches) {
+			ret = this.parseContext(new ChatsoundModifierContext(input, []));
 		}
 
 		return ret;
 	}
 
-	// EXPERIMENTAL
 	private parseContext(ctx: ChatsoundModifierContext): Array<Chatsound> {
 		const ret: Array<Chatsound> = [];
 		const modifiers: Array<IChatsoundModifier> = ctx.getAllModifiers();

@@ -2,7 +2,8 @@ import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class RepeatModifier implements IChatsoundModifier {
 	name: string = "rep";
-	legacyPattern: RegExp = /\w\*[0-9]+/g;
+	legacyCharacter: string = "*";
+	escapeLegacy: boolean = true;
 
 	process(soundString: string): void {
 		throw new Error("Method not implemented.");
