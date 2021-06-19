@@ -1,11 +1,15 @@
 import Chatsound from "./Chatsound";
 import { ChatsoundContextModifier as ChatsoundModifierContext, IChatsoundModifier } from "./ChatsoundModifier";
+import * as modifiers from "./modifiers";
 
 export default class ChatsoundsParser {
 	private lookup: Map<string, string>;
 
 	constructor(lookup: Map<string, string>) {
 		this.lookup = lookup;
+		//for (const modifier of modifiers) {
+
+		//}
 	}
 
 	/*
