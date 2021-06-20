@@ -104,6 +104,7 @@ export default class ChatsoundsFetcher {
 		try {
 			const resp = await axios.get(baseUrl + "list.msgpack");
 			const sounds: Array<Array<string>> = msgpack.unpack(resp.data);
+			console.log(sounds);
 			this.readList(baseUrl, sounds);
 		} catch (err) {
 			//console.log(err.message);
