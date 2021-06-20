@@ -1,17 +1,17 @@
 import path from "path";
-import puppeteer, { Browser, Page } from "puppeteer";
 import sleep from "sleep-promise";
+import { launch, getStream, Stream } from "puppeteer-stream";
 
-type Worker= { busy: boolean, context: Page, browser: Browser };
-
+type Worker = { busy: boolean, context: any, browser: any };
+export type EvalResult = { stream?: Stream, error?: Error }
 export default class WorkerPool {
 	private workers: Array<Worker> = [];
 
 	constructor(maxWorkers: number) {
 		(async () => {
+			const browser = await launch({});
 			for (let i = 0; i < maxWorkers; i++) {
-				const browser: Browser = await puppeteer.launch();
-				const page: Page = await browser.newPage();
+				const page = await browser.newPage();
 				await page.goto(path.resolve(__dirname, "../../worker/index.html"));
 
 				this.workers.push({
@@ -23,22 +23,31 @@ export default class WorkerPool {
 		})();
 	}
 
-	public async evaluate(code: string, timeout: number): Promise<any> {
-		const start = Date.now();
-		while (true) {
-			for (const worker of this.workers) {
-				if (!worker.busy) {
-					const promise: Promise<any> = worker.context.evaluate(code);
-					worker.busy = true;
-					const res = await promise;
-					worker.busy = false;
+	public async evaluate(code: string, timeout: number): Promise<EvalResult> {
+		try {
+			const start = Date.now();
+			while (true) {
+				for (const worker of this.workers) {
+					if (!worker.busy) {
+						worker.busy = true;
+						const promise: Promise<any> = worker.context.evaluate(code);
+						promise.then(() => worker.busy = false).catch(() => worker.busy = false);
 
-					return res;
+						const stream: Stream = await getStream(worker.context, { audio: true, video: false });
+						return {
+							stream: stream,
+						};
+					}
 				}
-			}
 
-			await sleep(100);
-			if ((Date.now() - start) >= timeout) throw new Error("Timeout");
+				await sleep(100);
+				if ((Date.now() - start) >= timeout) throw new Error("Timeout");
+			}
+		}
+		catch (err) {
+			return {
+				error: err,
+			}
 		}
 	}
 }
