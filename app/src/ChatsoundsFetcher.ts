@@ -1,4 +1,5 @@
 import axios from "axios";
+import msgpack from "msgpack";
 
 type ChatsoundRef = { path?: string, base_path?: string };
 type ChatsoundsTree<T> = Map<string, Map<string, T>>;
@@ -70,7 +71,7 @@ export default class ChatsoundsFetcher {
 		return inputTree;
 	}
 
-	private readList(baseUrl: string, sounds: Array<string>): void {
+	private readList(baseUrl: string, sounds: Array<Array<string>>): void {
 		let tree: ChatsoundsTree<ChatsoundRef> = new Map<string, Map<string, ChatsoundRef>>();
 		let list: ChatsoundsTree<string> = new Map<string, Map<string, string>>();
 
@@ -102,7 +103,8 @@ export default class ChatsoundsFetcher {
 		const baseUrl: string = `https://raw.githubusercontent.com/${repo}/master/${location}/`;
 		try {
 			const resp = await axios.get(baseUrl + "list.msgpack");
-			this.readList(baseUrl, Buffer.from(resp.data as Buffer).toString("utf8").split("\n"));
+			const sounds: Array<Array<string>> = msgpack.unpack(resp.data);
+			this.readList(baseUrl, sounds);
 		} catch (err) {
 			//console.log(err.message);
 			const url: string = `https://api.github.com/repos/${repo}/git/trees/master?recursive=1`;
