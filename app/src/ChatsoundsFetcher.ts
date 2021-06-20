@@ -87,7 +87,8 @@ export default class ChatsoundsFetcher {
 				treeRef.set(trigger, { path: path, base_path: baseUrl });
 				tree.set(realm, treeRef);
 
-				const listRef: Map<string, string> = list.get(realm) ?? new Map<string, string>();
+				let listRef: Map<string, string> | undefined = list.get(realm);
+				if (listRef === undefined) listRef = new Map<string, string>();
 				listRef.set(trigger, path);
 				list.set(realm, listRef);
 			}
