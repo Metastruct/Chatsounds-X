@@ -4,15 +4,8 @@ import fs from "fs";
 import schedule from "node-schedule";
 import WorkerPool, { EvalResult } from "./WorkerPool";
 import ChatsoundsFetcher from "./ChatsoundsFetcher";
-import dateFormat from "dateformat";
-
-const configBuffer: Buffer = fs.readFileSync(path.resolve(__dirname, "../../config.json"));
-const config = JSON.parse(configBuffer.toString());
-
-function log(msg: string): void {
-	const now: string = dateFormat(new Date(), "dd/mm/yyyy HH:MM:ss");
-	console.log(`${now} | ${msg}`);
-}
+import config from "../../config.json";
+import log from "./log";
 
 const HTTP_SERVER: express.Express = express();
 HTTP_SERVER.use(express.json());
