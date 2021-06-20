@@ -1,0 +1,6 @@
+{
+	"port": 9854,
+	"maxWorkers": 30,
+	"queryTimeout": 60000,
+	"rebuildLookupCron": "*/5 * * * *"
+}
