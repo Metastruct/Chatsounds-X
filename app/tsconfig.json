@@ -1,12 +1,14 @@
 {
-	"compilerOptions": {
-        "module": "commonjs",
+    "compilerOptions": {
         "target": "ES6",
-        "outDir": "./build",
-        "sourceMap": true,
-        "strict": true,
-        "esModuleInterop": true,
+        "module": "commonjs",
         "resolveJsonModule": true,
-	},
-    "include": ["src"],
+        "outDir": "./build",
+        "strict": true,
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true
+    }
 }

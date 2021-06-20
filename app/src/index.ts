@@ -12,7 +12,7 @@ HTTP_SERVER.use(express.json());
 HTTP_SERVER.use(express.urlencoded({ extended: true }));
 HTTP_SERVER.listen(config.port, () => log(`Listening on port ${config.port}`));
 
-const workerPath: string = path.resolve(__dirname, "../../worker/index.html");
+const workerPath: string = path.resolve(__dirname, "../../../../worker/index.html");
 if (!fs.existsSync(workerPath)) {
 	throw new Error(`Could not initialize worker pool: The worker file is inexistant at '${workerPath}'`);
 }
