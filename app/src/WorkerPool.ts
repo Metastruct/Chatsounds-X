@@ -15,11 +15,11 @@ export default class WorkerPool {
 				silent: true,
 				xvfb_args: ["-screen", "0", "800x600", "-ac"],
 			});
-			xvfb.start((err: Error) => { if (err) console.log("Virtual display not up: " + err.message) });
+			await new Promise<void>((resolve, reject) => xvfb.start((err: Error) => err ? reject(err) : resolve()));
 			const browser = await launch({
 				headless: false,
 				defaultViewport: undefined,
-				args: ["--no-sandbox", "--start-fullscreen",`--display=${xvfb._display}`],
+				args: ["--no-sandbox", `--display=${xvfb._display}`],
 			});
 			for (let i = 0; i < maxWorkers; i++) {
 				const page = await browser.newPage();
