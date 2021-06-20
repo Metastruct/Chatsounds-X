@@ -98,7 +98,8 @@ export default class ChatsoundsFetcher {
 	}
 
 	private async buildFromGithub(repo: string, location?: string): Promise<void> {
-		location = location ?? "sounds/chatsounds";
+		if (location === undefined)
+			location = "sounds/chatsounds";
 
 		const baseUrl: string = `https://raw.githubusercontent.com/${repo}/master/${location}/`;
 		try {
