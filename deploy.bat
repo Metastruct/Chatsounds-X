@@ -1,10 +1,10 @@
 git pull
 
 cd worker
-npm install
-npm run build
+call npm install
+call npm run build
 
 cd ../app
-npm install
-npm run build
-npm run start
+call npm install
+call npm run build
+call npm run start

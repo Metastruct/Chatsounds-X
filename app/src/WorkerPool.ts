@@ -15,7 +15,15 @@ export default class WorkerPool {
 				silent: true,
 				xvfb_args: ["-screen", "0", "800x600", "-ac"],
 			});
-			await new Promise<void>((resolve, reject) => xvfb.start((err: Error) => err ? reject(err) : resolve()));
+
+			try {
+				await new Promise<void>((resolve, reject) => xvfb.start((err: Error) => err ? reject(err) : resolve()));
+			} catch(err) {
+				if (err.message.includes("ENOENT"))
+					console.log("/!\\ XVFB MISSING, THIS PROCESS REQUIRES A DISPLAY TO RUN /!\\")
+				throw err;
+			}
+
 			const browser = await launch({
 				headless: false,
 				defaultViewport: undefined,
