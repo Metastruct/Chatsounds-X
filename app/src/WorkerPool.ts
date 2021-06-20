@@ -1,11 +1,13 @@
 import path from "path";
 import sleep from "sleep-promise";
 import { launch, getStream, Stream } from "puppeteer-stream";
+import log from "./log";
 
 const Xvfb = require("xvfb"); // this doesnt like to be imported
 
 type Worker = { busy: boolean, context: any, browser: any };
 export type EvalResult = { stream?: Stream, error?: Error }
+
 export default class WorkerPool {
 	private workers: Array<Worker> = [];
 
@@ -20,7 +22,7 @@ export default class WorkerPool {
 				await new Promise<void>((resolve, reject) => xvfb.start((err: Error) => err ? reject(err) : resolve()));
 			} catch(err) {
 				if (err.message.includes("ENOENT"))
-					console.log("/!\\ XVFB MISSING, THIS PROCESS REQUIRES A DISPLAY TO RUN /!\\");
+					log("/!\\ XVFB MISSING, THIS PROCESS REQUIRES A DISPLAY TO RUN /!\\");
 				else
 					throw err;
 			}

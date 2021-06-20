@@ -10,8 +10,6 @@
             "name": "Launch Program",
             "protocol": "inspector",
             "runtimeExecutable": "${workspaceFolder}/app/node_modules/.bin/ts-node-dev",
-            "sourceMaps": true,
-            "runtimeArgs": ["-r", "ts-node/register"],
             "args": ["${workspaceFolder}/app/src"]
         }
     ]

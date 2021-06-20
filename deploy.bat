@@ -8,3 +8,5 @@ cd ../app
 call npm install
 call npm run build
 call npm run start
+
+cd ..

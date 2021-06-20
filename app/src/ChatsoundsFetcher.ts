@@ -1,5 +1,6 @@
 import axios from "axios";
 import msgpack from "msgpack";
+import log from "./log";
 
 type ChatsoundRef = { path?: string, base_path?: string };
 type ChatsoundsTree<T> = Map<string, Map<string, T>>;
@@ -15,20 +16,24 @@ export default class ChatsoundsFetcher {
 	}
 
 	public async fetch(): Promise<void> {
-		await Promise.all([
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "csgo"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "css"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "ep1"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "ep2"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "hl1"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "hl2"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "l4d"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "l4d2"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "portal"),
-			this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "tf2"),
-			this.buildFromGithub("PAC3-Server/chatsounds"),
-			this.buildFromGithub("Metastruct/garrysmod-chatsounds", "sound/chatsounds/autoadd")
-		]);
+		try {
+			await Promise.all([
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "csgo"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "css"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "ep1"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "ep2"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "hl1"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "hl2"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "l4d"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "l4d2"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "portal"),
+				this.buildFromGithub("PAC3-Server/chatsounds-valve-games", "tf2"),
+				this.buildFromGithub("PAC3-Server/chatsounds"),
+				this.buildFromGithub("Metastruct/garrysmod-chatsounds", "sound/chatsounds/autoadd")
+			]);
+		} catch(err) {
+			log(err.message);
+		}
 	}
 
 	private tableToTree<T>(inputTree: ChatsoundsTree<T>): ChatsoundsTree<T> {
