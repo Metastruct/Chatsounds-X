@@ -4,16 +4,20 @@ import fs from "fs";
 import schedule from "node-schedule";
 import WorkerPool, { EvalResult } from "./WorkerPool";
 import ChatsoundsFetcher from "./ChatsoundsFetcher";
+import dateFormat from "dateformat";
 
 const configBuffer: Buffer = fs.readFileSync(path.resolve(__dirname, "../../config.json"));
 const config = JSON.parse(configBuffer.toString());
 
+function log(msg: string): void {
+	const now: string = dateFormat(new Date(), "dd/mm/yyyy HH:MM:ss");
+	console.log(`${now} | ${msg}`);
+}
+
 const HTTP_SERVER: express.Express = express();
 HTTP_SERVER.use(express.json());
 HTTP_SERVER.use(express.urlencoded({ extended: true }));
-HTTP_SERVER.listen(config.port, () =>
-	console.log(`Listening on port ${config.port}`)
-);
+HTTP_SERVER.listen(config.port, () => log(`Listening on port ${config.port}`));
 
 const workerPath: string = path.resolve(__dirname, "../../worker/index.html");
 if (!fs.existsSync(workerPath)) {
@@ -22,22 +26,27 @@ if (!fs.existsSync(workerPath)) {
 
 const fetcher: ChatsoundsFetcher = new ChatsoundsFetcher();
 schedule.scheduleJob(config.rebuildLookupCron, async () => await fetcher.fetch());
+fetcher.fetch();
 
 function tryProcessQuery(query: string): string | undefined {
 	try {
-		return "HANDLE(`" + JSON.stringify({ input: decodeURIComponent(query), lookup: fetcher.getLookup() }) + "`);"
-	} catch {
+		query = decodeURIComponent(query);
+		log(`Processing query: ${query}`);
+		return "HANDLE(`" + JSON.stringify({ input: query, lookup: fetcher.getList() }) + "`);"
+	} catch (err) {
+		log(`Could not process query ${err.message}`);
 		return undefined;
 	}
 }
 
 function error(res: any, err: string): any {
+	log(err);
 	res.status(500);
 	return res.send({ error: err })
 }
 
 const workerPool: WorkerPool = new WorkerPool(config.maxWorkers);
-HTTP_SERVER.get("/chatsound", async (request, result) => {
+HTTP_SERVER.get("/chatsounds/stream", async (request, result) => {
 	const query: string | undefined = request.query.query as string;
 	if (!query || query.length === 0) {
 		result.status(400);
@@ -56,4 +65,8 @@ HTTP_SERVER.get("/chatsound", async (request, result) => {
 		"Content-Type": "audio/ogg"
 	});
 	res.stream.pipe(result);
+});
+
+HTTP_SERVER.get("/chatsounds/map", async (_, result) => {
+	return result.send(fetcher.getList());
 });
