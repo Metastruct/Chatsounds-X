@@ -82,7 +82,8 @@ export default class ChatsoundsFetcher {
 			const triggerUrl: string = sounds[i][4];
 
 			if (!triggerUrl) {
-				const treeRef: Map<string, ChatsoundRef> = tree.get(realm) ?? new Map<string, ChatsoundRef>();
+				let treeRef: Map<string, ChatsoundRef> | undefined = tree.get(realm);
+				if (treeRef === undefined) treeRef = new Map<string, ChatsoundRef>();
 				treeRef.set(trigger, { path: path, base_path: baseUrl });
 				tree.set(realm, treeRef);
 
@@ -98,8 +99,7 @@ export default class ChatsoundsFetcher {
 	}
 
 	private async buildFromGithub(repo: string, location?: string): Promise<void> {
-		if (location === undefined)
-			location = "sounds/chatsounds";
+		if (location === undefined) location = "sounds/chatsounds";
 
 		const baseUrl: string = `https://raw.githubusercontent.com/${repo}/master/${location}/`;
 		try {
