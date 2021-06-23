@@ -5,6 +5,5 @@ export default class LfoPitchModifier implements IChatsoundModifier {
 	value: number = 0;
 
 	process(strArgs: Array<string>): void {
-		throw new Error("Method not implemented.");
 	}
 }
