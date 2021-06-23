@@ -169,7 +169,8 @@ export default class ChatsoundsFetcher {
 				const body: string = JSON.stringify(resp.data);
 				const sounds: Array<Array<string>> = [];
 				let i: number = 0;
-				for (let [_, path] of body.matchAll(/"path":"([\w\/\s]+.ogg)"(?:\n|,|})/g)) {
+				for (const match of body.matchAll(/"path":\s"([\w\/\s]+\.ogg)"(?:\n|,|})/g)) {
+					let path: string = match[1];
 					if (!path || path.length === 0) continue;
 					if (!path.startsWith(location) || !path.endsWith(".ogg")) continue;
 
