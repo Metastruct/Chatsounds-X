@@ -2,7 +2,7 @@ import express from "express";
 import path from "path";
 import fs from "fs";
 import schedule from "node-schedule";
-import WorkerPool, { EvalResult } from "./WorkerPool";
+import WorkerPool, { ParseResult, StreamResult } from "./WorkerPool";
 import ChatsoundsFetcher from "./ChatsoundsFetcher";
 import log from "./log";
 
@@ -28,17 +28,6 @@ const fetcher: ChatsoundsFetcher = new ChatsoundsFetcher(config.ghSources);
 schedule.scheduleJob(config.fetchInterval, async () => await fetcher.fetch());
 fetcher.fetch();
 
-function tryProcessQuery(query: string): string | undefined {
-	try {
-		query = decodeURIComponent(query);
-		log(`Processing query: ${query}`);
-		return "HANDLE(`" + JSON.stringify({ input: query, lookup: fetcher.getLookup() }) + "`);"
-	} catch (err) {
-		log(`Could not process query ${err.message}`);
-		return undefined;
-	}
-}
-
 function error(res: any, err: string): any {
 	log(err);
 	res.status(500);
@@ -53,18 +42,29 @@ HTTP_SERVER.get("/chatsounds/stream", async (request, result) => {
 		return result.send("The 'query' parameter was not specified");
 	}
 
-	const code: string | undefined = tryProcessQuery(query);
-	if (!code) return error(result, "Could not parse query");
-
-	const res: EvalResult = await workerPool.evaluate(code, config.queryTimeout);
+	const res: StreamResult = await workerPool.getStream(query, fetcher.getLookup(), config.queryTimeout);
 	if (res.error) return error(result, res.error.message);
 	if (!res.stream) return error(result, "Stream was undefined");
 
 	result.status(206)
-	//result.setHeader("Accept-Ranges", "bytes");
 	result.setHeader("Content-Type", "audio/ogg");
 
 	res.stream.pipe(result);
+});
+
+HTTP_SERVER.get("/chatsounds/parse", async (request, result) => {
+	const query: string | undefined = request.query.query as string;
+	if (!query || query.length === 0) {
+		result.status(400);
+		return result.send("The 'query' parameter was not specified");
+	}
+
+	const res: ParseResult = await workerPool.parse(query, fetcher.getLookup());
+	if (res.error) return error(result, res.error.message);
+	if (!res.result) return error(result, "Result was undefined");
+
+	result.setHeader("Content-Type", "application/json");
+	result.send(JSON.stringify(res.result));
 });
 
 HTTP_SERVER.get("/chatsounds/map", async (_, result) => {

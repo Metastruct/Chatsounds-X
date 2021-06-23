@@ -1,5 +1,5 @@
 {
-	"input": "h",
+	"input": "h yes#2%50 im disabled:echo miss:pitch(-1)",
 	"lookup": {
 		"0": [
 			"https://raw.githubusercontent.com/Metastruct/garrysmod-chatsounds/master/sound/chatsounds/autoadd/animal_crossing/0.ogg",

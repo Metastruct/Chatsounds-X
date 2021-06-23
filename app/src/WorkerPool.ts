@@ -2,11 +2,13 @@ import path from "path";
 import sleep from "sleep-promise";
 import { launch, getStream, Stream } from "puppeteer-stream";
 import log from "./log";
+import { ChatsoundsLookup } from "./ChatsoundsFetcher";
 
 const Xvfb = require("xvfb"); // this doesnt like to be imported
 
-type Worker = { busy: boolean, context: any };
-export type EvalResult = { stream?: Stream, error?: Error }
+export type Worker = { busy: boolean, context: any };
+export type StreamResult = { stream?: Stream, error?: Error };
+export type ParseResult = { result?: any, error?: Error };
 
 export default class WorkerPool {
 	private workers: Array<Worker> = [];
@@ -67,7 +69,7 @@ export default class WorkerPool {
 		return { busy: false, context: page };
 	}
 
-	private async getCachedStream(code: string): Promise<EvalResult | undefined> {
+	private async getCachedStream(code: string): Promise<StreamResult | undefined> {
 		for (const worker of this.workers) {
 			if (!worker.busy) {
 				worker.busy = true;
@@ -88,7 +90,7 @@ export default class WorkerPool {
 		return undefined;
 	}
 
-	private async getTemporaryStream(code: string): Promise<EvalResult | undefined> {
+	private async getTemporaryStream(code: string): Promise<StreamResult | undefined> {
 		const worker: Worker | undefined = await this.newWorker();
 		if (worker) {
 			this.tmpWorkerCount++;
@@ -122,11 +124,19 @@ export default class WorkerPool {
 		return undefined;
 	}
 
-	public async evaluate(code: string, timeout: number): Promise<EvalResult> {
+	private processStreamQuery(query: string, lookup: ChatsoundsLookup): string {
+		query = decodeURIComponent(query);
+		log(`Processing query: ${query}`);
+		return "HANDLE_STREAM(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
+	}
+
+	public async getStream(query: string, lookup: ChatsoundsLookup, timeout: number): Promise<StreamResult> {
 		try {
 			const start = Date.now();
+			const code: string | undefined = this.processStreamQuery(query, lookup);
+
 			while (true) {
-				let res: EvalResult | undefined = await this.getCachedStream(code);
+				let res: StreamResult | undefined = await this.getCachedStream(code);
 				if (res && res.stream) return res;
 
 				// if none of the cached workers is available give a new temporary one
@@ -140,6 +150,33 @@ export default class WorkerPool {
 					return {
 						error: new Error("Timeout"),
 					}
+				}
+			}
+		}
+		catch (err) {
+			return {
+				error: err,
+			}
+		}
+	}
+
+	private processParseQuery(query: string, lookup: ChatsoundsLookup): string {
+		query = decodeURIComponent(query);
+		log(`Processing query: ${query}`);
+		return "HANDLE_PARSE(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
+	}
+
+	public async parse(query: string, lookup: ChatsoundsLookup): Promise<any> {
+		try {
+			const code: string = this.processParseQuery(query, lookup);
+			const worker: Worker | undefined = await this.newWorker();
+			if (worker) {
+				return {
+					result: await worker.context.evaluate(code),
+				}
+			} else {
+				return {
+					error: new Error("App is still initializing"),
 				}
 			}
 		}
