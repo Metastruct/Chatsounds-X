@@ -10,9 +10,8 @@ export default class SelectModifier implements IChatsoundModifier {
 		const value: number = parseInt(strArgs[0]);
 		if (isNaN(value) || value < 0) {
 			this.value = 0;
-			return;
+		} else {
+			this.value = value;
 		}
-
-		this.value = value;
 	}
 }

@@ -2,10 +2,16 @@ import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class PitchModifier implements IChatsoundModifier {
 	name: string = "pitch";
-	value: number = 0;
+	value: number = 1;
 	legacyCharacter: string = "%";
 
 	process(strArgs: Array<string>): void {
-		throw new Error("Method not implemented.");
+		const value: number = parseInt(strArgs[0]);
+		if (isNaN(value)) {
+			this.value = 1;
+			return;
+		}
+
+		this.value = value;
 	}
 }
