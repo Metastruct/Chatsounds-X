@@ -4,12 +4,12 @@
 	"description": "[WIP] A TypeScript interface / process that allows playing chatsounds from potentially everywhere",
 	"main": "index.js",
 	"dependencies": {
+		"@msgpack/msgpack": "^2.7.0",
 		"axios": "^0.21.1",
 		"dateformat": "^4.5.1",
 		"express": "^4.17.1",
 		"fs": "0.0.1-security",
 		"https": "^1.0.0",
-		"msgpack-lite": "^0.1.26",
 		"node-schedule": "^2.0.0",
 		"puppeteer": "^10.0.0",
 		"puppeteer-stream": "^2.0.3",
