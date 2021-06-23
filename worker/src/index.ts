@@ -41,6 +41,3 @@ function parseHandler(queryString: string): ChatsoundResponse<Array<Chatsound>> 
 const GLOBAL = window as any;
 GLOBAL.HANDLE_STREAM = streamHandler;
 GLOBAL.HANDLE_PARSE = parseHandler;
-
-/*fetch("http://3kv.in:6560/chatsounds/queryexample", { method: "GET" })
-	.then(resp => resp.text()).then(body => handler(body));*/
