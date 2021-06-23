@@ -5,27 +5,26 @@ import WebAudio from "./webaudio/WebAudio";
 type ChatsoundQuery = { input: string, lookup: ChatsoundsLookup };
 export type ChatsoundsLookup = { [key: string]: Array<string> }
 
-async function exampleStream(): Promise<void> {
+/*async function exampleStream(): Promise<void> {
 	const webAudio: WebAudio = new WebAudio();
 
 	const stream = await webAudio.createStream("identifier", "https://google.com");
 	stream.play();
 
 	webAudio.close();
-}
+}*/
 
 function handler(queryString: string): any {
 	const query: ChatsoundQuery = JSON.parse(queryString);
 	const parser: ChatsoundsParser = new ChatsoundsParser(query.lookup);
 	const chatsounds: Array<Chatsound> = parser.parse(query.input);
 
-	// return chatsounds for test purposes
-	// eventually we will return an audio stream
-	console.debug(chatsounds);
-	return chatsounds.map(cs => cs.name);
+	// Trigger audio here...
+
+	return chatsounds;
 }
 
 (window as any).HANDLE = handler;
 
-fetch("http://3kv.in:6560/chatsounds/queryexample", { method: "GET" })
-	.then(resp => resp.text()).then(body => handler(body));
+/*fetch("http://3kv.in:6560/chatsounds/queryexample", { method: "GET" })
+	.then(resp => resp.text()).then(body => handler(body));*/
