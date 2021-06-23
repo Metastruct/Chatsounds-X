@@ -10,6 +10,7 @@ export type Worker = { busy: boolean, context: any };
 export type StreamResult = { stream?: Stream, error?: Error };
 export type ParseResult = { result?: any, error?: Error };
 
+const ILLEGAL_CHARS: Array<string> = ["?", "!"];
 export default class WorkerPool {
 	private workers: Array<Worker> = [];
 	private maxWorkers: number;
@@ -124,8 +125,17 @@ export default class WorkerPool {
 		return undefined;
 	}
 
+	private sanitizeString(str: string): string {
+		str = str.toLowerCase();
+		for (const char of ILLEGAL_CHARS) {
+			str = str.replace(char, "");
+		}
+
+		return decodeURIComponent(str);
+	}
+
 	private processStreamQuery(query: string, lookup: ChatsoundsLookup): string {
-		query = decodeURIComponent(query.toLowerCase());
+		query = this.sanitizeString(query);
 		return "HANDLE_STREAM(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
 	}
 
@@ -162,7 +172,7 @@ export default class WorkerPool {
 	}
 
 	private processParseQuery(query: string, lookup: ChatsoundsLookup): string {
-		query = decodeURIComponent(query.toLowerCase());
+		query = this.sanitizeString(query);
 		return "HANDLE_PARSE(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
 	}
 
