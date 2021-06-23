@@ -162,7 +162,7 @@ export default class ChatsoundsParser {
 		while (words.length > 0) {
 			const chunk: string = words.slice(0, end).join(" ");
 			const chatsoundUrls: Array<string> | undefined = this.lookup[chunk];
-			if (chatsoundUrls && chatsoundUrls.length > 0) {
+			if (chatsoundUrls && chatsoundUrls.length > 0 && chunk.length > 0) {
 				let internalSelectValue: number = selectValue;
 				if (selectValue >= chatsoundUrls.length) internalSelectValue = chatsoundUrls.length - 1;
 				if (selectValue === 0) internalSelectValue = Math.floor(chatsoundUrls.length * Math.random());
