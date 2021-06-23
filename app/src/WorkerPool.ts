@@ -125,7 +125,7 @@ export default class WorkerPool {
 	}
 
 	private processStreamQuery(query: string, lookup: ChatsoundsLookup): string {
-		query = decodeURIComponent(query);
+		query = decodeURIComponent(query.toLowerCase());
 		return "HANDLE_STREAM(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
 	}
 
@@ -162,7 +162,7 @@ export default class WorkerPool {
 	}
 
 	private processParseQuery(query: string, lookup: ChatsoundsLookup): string {
-		query = decodeURIComponent(query);
+		query = decodeURIComponent(query.toLowerCase());
 		return "HANDLE_PARSE(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
 	}
 
