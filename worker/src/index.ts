@@ -14,12 +14,18 @@ async function exampleStream(): Promise<void> {
 	webAudio.close();
 }
 
-(window as any).HANDLE = (queryString: string): any => {
+function handler(queryString: string): any {
 	const query: ChatsoundQuery = JSON.parse(queryString);
 	const parser: ChatsoundsParser = new ChatsoundsParser(query.lookup);
 	const chatsounds: Array<Chatsound> = parser.parse(query.input);
 
 	// return chatsounds for test purposes
 	// eventually we will return an audio stream
+	console.debug(chatsounds);
 	return chatsounds.map(cs => cs.name);
 }
+
+(window as any).HANDLE = handler;
+
+fetch("http://3kv.in:6560/chatsounds/queryexample", { method: "GET" })
+	.then(resp => resp.text()).then(body => handler(body));

@@ -2,11 +2,16 @@ import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class RepeatModifier implements IChatsoundModifier {
 	name: string = "rep";
-	value: number = 0;
+	value: number = 1;
 	legacyCharacter: string = "*";
 	escapeLegacy: boolean = true;
 
 	process(strArgs: Array<string>): void {
-		throw new Error("Method not implemented.");
+		const value: number = parseInt(strArgs[0]);
+		if (isNaN(value) || value < 1) {
+			this.value = 1;
+		} else {
+			this.value = value;
+		}
 	}
 }
