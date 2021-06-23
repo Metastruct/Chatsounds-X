@@ -1,7 +1,7 @@
 {
 	"name": "chatsounds-x-app",
 	"version": "1.0.0",
-	"description": "[WIP] A TypeScript interface / process that allows playing chatsounds from potentially everywhere",
+	"description": "A TypeScript interface / process that allows playing chatsounds from potentially everywhere",
 	"main": "index.js",
 	"dependencies": {
 		"@msgpack/msgpack": "^2.7.0",
