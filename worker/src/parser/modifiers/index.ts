@@ -4,8 +4,9 @@ import RealmModifier from "./RealmModifier";
 import RepeatModifier from "./RepeatModifier";
 import SelectModifier from "./SelectModifier";
 import VolumeModifier from "./VolumeModifier";
+import LfoPitchModifier from "./LfoPitchModifier";
 
-export { EchoModifier, PitchModifier, RealmModifier, RepeatModifier, SelectModifier, VolumeModifier };
+export { EchoModifier, PitchModifier, RealmModifier, RepeatModifier, SelectModifier, VolumeModifier, LfoPitchModifier };
 
 // TODO: IMPLEMENT THOSE
 /*chatsounds.LegacyModifiers = {

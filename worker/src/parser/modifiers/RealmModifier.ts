@@ -5,6 +5,5 @@ export default class RealmModifier implements IChatsoundModifier {
 	value: string = "";
 
 	process(strArgs: Array<string>): void {
-		throw new Error("Method not implemented.");
 	}
 }
