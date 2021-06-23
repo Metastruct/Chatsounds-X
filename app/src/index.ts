@@ -45,7 +45,7 @@ function error(res: any, err: string): any {
 	return res.send({ error: err })
 }
 
-const workerPool: WorkerPool = new WorkerPool(config.maxWorkers);
+const workerPool: WorkerPool = new WorkerPool(config.cachedWorkers, config.maxWorkers);
 HTTP_SERVER.get("/chatsounds/stream", async (request, result) => {
 	const query: string | undefined = request.query.query as string;
 	if (!query || query.length === 0) {
@@ -60,13 +60,14 @@ HTTP_SERVER.get("/chatsounds/stream", async (request, result) => {
 	if (res.error) return error(result, res.error.message);
 	if (!res.stream) return error(result, "Stream was undefined");
 
-	result.writeHead(206, {
-		"accept-ranges": "bytes",
-		"Content-Type": "audio/ogg"
-	});
+	result.status(206)
+	//result.setHeader("Accept-Ranges", "bytes");
+	result.setHeader("Content-Type", "audio/ogg");
+
 	res.stream.pipe(result);
 });
 
 HTTP_SERVER.get("/chatsounds/map", async (_, result) => {
+	result.setHeader("Content-Type", "application/json");
 	return result.send(fetcher.getList().toJson());
 });
