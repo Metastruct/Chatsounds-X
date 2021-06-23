@@ -126,12 +126,13 @@ export default class WorkerPool {
 
 	private processStreamQuery(query: string, lookup: ChatsoundsLookup): string {
 		query = decodeURIComponent(query);
-		log(`Processing query: ${query}`);
 		return "HANDLE_STREAM(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
 	}
 
 	public async getStream(query: string, lookup: ChatsoundsLookup, timeout: number): Promise<StreamResult> {
 		try {
+			log(`Processing stream query: ${query}`);
+
 			const start = Date.now();
 			const code: string | undefined = this.processStreamQuery(query, lookup);
 
@@ -162,12 +163,13 @@ export default class WorkerPool {
 
 	private processParseQuery(query: string, lookup: ChatsoundsLookup): string {
 		query = decodeURIComponent(query);
-		log(`Processing query: ${query}`);
 		return "HANDLE_PARSE(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
 	}
 
 	public async parse(query: string, lookup: ChatsoundsLookup): Promise<any> {
 		try {
+			log(`Processing parse query: ${query}`);
+
 			const code: string = this.processParseQuery(query, lookup);
 			const worker: Worker | undefined = await this.newWorker();
 			if (worker) {

@@ -154,17 +154,17 @@ export default class ChatsoundsFetcher {
 		const baseUrl: string = `https://raw.githubusercontent.com/${repo}/master/${location}/`;
 
 		if (useMsgPack) {
-			const resp = await axios.get(baseUrl + "list.msgpack");
-			const buffer: Buffer = Buffer.from(resp.data, -1);
+			//const resp = await axios.get(baseUrl + "list.msgpack");
+			//const buffer: Buffer = Buffer.from(resp.data, -1);
 
 			// msgpack is fucking taking a piss, it either returns -17 or undefined accross all the libraries I tested it with:
 			// msgpack, msgpack5, msgpack-lite and node-msgpack
 			// supposedly the list.msgpack are correctly generated and implementing the specs so my only conclusion is that
 			// all the node.js libraries have implemented the specs incorrectly ???????????????
 			// obviously for future me / other reader, it seems like caps library's implementation is wrong :)
-			const sounds: Array<Array<string>> = decode(buffer) as Array<Array<string>>;
+			//const sounds: Array<Array<string>> = decode(buffer) as Array<Array<string>>;
 
-			this.readList(baseUrl, sounds);
+			//this.readList(baseUrl, sounds);
 		} else {
 			const url: string = `https://api.github.com/repos/${repo}/git/trees/master?recursive=1`;
 			const resp = await axios.get(url);
