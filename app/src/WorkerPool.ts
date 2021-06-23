@@ -144,7 +144,6 @@ export default class WorkerPool {
 			}
 		}
 		catch (err) {
-			console.debug(err);
 			return {
 				error: err,
 			}

@@ -106,7 +106,6 @@ export default class ChatsoundsParser {
 
 			// if we chain modifiers, add them to the last proper context
 			if (precedingChunk.trim().length === 0) {
-				console.debug(modifier, lastCtx);
 				if (modifier && lastCtx) {
 					lastCtx.modifiers.push(modifier);
 				}

@@ -72,10 +72,10 @@ HTTP_SERVER.get("/chatsounds/map", async (_, result) => {
 	return result.send(fetcher.getList().toJson());
 });
 
-HTTP_SERVER.get("/chatsounds/queryexample", async (_, result) => {
+/*HTTP_SERVER.get("/chatsounds/queryexample", async (_, result) => {
 	result.setHeader("Content-Type", "application/json");
 
 	const examplePath: string = path.resolve(__dirname, BASE_PATH, "app/queryexample.json");
 	const data = fs.readFileSync(examplePath)
 	return result.send(data);
-})
+})*/
