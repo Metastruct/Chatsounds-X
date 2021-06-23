@@ -98,7 +98,12 @@ export default class ChatsoundsFetcher {
 					}
 
 					if (i === max) {
-						const soundData = next.get(word)?.SOUND_DATA ?? { trigger: trigger, realms: new Map<string, any>() };
+						let soundData = { trigger: trigger, realms: new Map<string, any>() };
+						const nextWord = next.get(word);
+						if (nextWord && nextWord.SOUND_DATA) {
+							soundData = nextWord.SOUND_DATA;
+						}
+
 						if (soundData.realms.size > 0) {
 							soundData.realms.set(realm, {
 								sounds: sounds,

@@ -53,7 +53,7 @@ export default class ChatsoundsParser {
 			}
 
 			if (modifier.name.length > 0) {
-				this.modifierLookup.set(`:${modifier.name}(`, modifierClass);
+				this.modifierLookup.set(modifier.name, modifierClass);
 			}
 		}
 	}
@@ -63,31 +63,34 @@ export default class ChatsoundsParser {
 		const modernPattern: string = "\\w\\)?:(" + instances
 			.filter(modifier => modifier.name.length > 0)
 			.map(modifier => modifier.name)
-			.join("|") + ")(\\(([0-9]|\\.|\\s|,|-)*\\))?(:?\\w|\\b)";
-		const legacyPattern: string = "" + instances
+			.join("|") + ")(\\(([0-9.\\s,-]+)\\))?";//(?:\\w|\\b)";
+		const legacyPattern: string = "\\w(" + instances
 			.filter(modifier => modifier.legacyCharacter)
 			.map(modifier => modifier.escapeLegacy ? "\\" + modifier.legacyCharacter : modifier.legacyCharacter)
-			.join("|") + "([0-9]+)?(:?\\w|\\b)";
+			.join("|") + ")([0-9]+)?(?:\\w|\\b)";
 
-		this.pattern = new RegExp(`(:?${modernPattern})|(:?${legacyPattern})`, "giu");
+		this.pattern = new RegExp(`(?:${modernPattern})|(?:${legacyPattern})`, "giu");
+		console.debug(this.pattern);
 	}
 
 	private tryGetModifier(regexResult: RegExpMatchArray): IChatsoundModifier | undefined {
 		if (!regexResult.groups) return undefined;
 
-		const entireMatch: string = regexResult.groups[0];
-		const modifierName: string = regexResult.groups[2];
+		const modifierName: string = regexResult.groups[1];
 		let modifierClass: (() => IChatsoundModifier) | undefined = this.modifierLookup.get(modifierName);
-		if (entireMatch.includes(":") && modifierClass) {
+		if (modifierClass) {
+			const args: Array<string> = regexResult.groups[3].split(",").map(chunk => chunk.trim());
 			const modifier: IChatsoundModifier = modifierClass();
-			//modifier.process();
+			modifier.process(args);
 			return modifier;
 		}
 
-		modifierClass = this.modifierLookup.get(entireMatch);
+		const legacyChar: string = regexResult.groups[4];
+		modifierClass = this.modifierLookup.get(legacyChar);
 		if (modifierClass) {
+			const arg: string = regexResult.groups[5];
 			const modifier: IChatsoundModifier = modifierClass();
-			//modifier.process();
+			modifier.process([arg]);
 			return modifier;
 		}
 
