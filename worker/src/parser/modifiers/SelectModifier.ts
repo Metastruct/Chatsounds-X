@@ -7,7 +7,7 @@ export default class SelectModifier implements IChatsoundModifier {
 	legacyCharacter: string = "#";
 
 	process(strArgs: Array<string>): void {
-		const value: number = parseInt(strArgs[0]);
+		const value: number = parseFloat(strArgs[0]);
 		if (isNaN(value) || value < 0) {
 			this.value = 0;
 		} else {
