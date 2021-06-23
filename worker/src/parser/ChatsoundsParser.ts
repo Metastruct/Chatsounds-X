@@ -137,7 +137,11 @@ export default class ChatsoundsParser {
 			const chunk: string = words.slice(0, end).join(" ");
 			const chatsoundUrls: Array<string> | undefined = this.lookup[chunk];
 			if (chatsoundUrls && chatsoundUrls.length > 0) {
-				const chatsound: Chatsound = new Chatsound(chunk, chatsoundUrls[selectValue >= chatsoundUrls.length ? chatsoundUrls.length - 1 : selectValue]);
+				let internalSelectValue: number = selectValue;
+				if (selectValue >= chatsoundUrls.length) internalSelectValue = chatsoundUrls.length - 1;
+				if (selectValue === 0) internalSelectValue = Math.floor(chatsoundUrls.length * Math.random());
+
+				const chatsound: Chatsound = new Chatsound(chunk, chatsoundUrls[internalSelectValue]);
 				chatsound.modifiers = chatsound.modifiers.concat(modifiers); // add the context modifiers
 
 				ret.push(chatsound);

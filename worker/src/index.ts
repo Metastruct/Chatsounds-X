@@ -14,7 +14,7 @@ async function exampleStream(): Promise<void> {
 	webAudio.close();
 }
 
-(window as any).HANDLE = (queryString: string): Array<string> => {
+(window as any).HANDLE = (queryString: string): any => {
 	const query: ChatsoundQuery = JSON.parse(queryString);
 	const parser: ChatsoundsParser = new ChatsoundsParser(query.lookup);
 	const chatsounds: Array<Chatsound> = parser.parse(query.input);
