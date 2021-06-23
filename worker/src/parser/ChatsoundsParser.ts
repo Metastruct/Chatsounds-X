@@ -128,17 +128,16 @@ export default class ChatsoundsParser {
 		const ret: Array<Chatsound> = [];
 		const modifiers: Array<IChatsoundModifier> = ctx.getAllModifiers();
 
+		const selects: Array<IChatsoundModifier> = modifiers.filter(m => m.legacyCharacter === "#");
+		const selectValue: number = selects.length > 0 ? selects[selects.length - 1].value : 0;
+
 		let words: Array<string> = ctx.content.split(" ");
 		let end: number = words.length;
 		while (words.length > 0) {
 			const chunk: string = words.slice(0, end).join(" ");
-
-			const selects: Array<IChatsoundModifier> = modifiers.filter(m => m.legacyCharacter === "#");
-			const selectValue: number = selects.length > 0 ? selects[selects.length - 1].value : 0;
-
-			const chatsoundUrl: string | undefined = this.lookup[chunk][selectValue];
-			if (chatsoundUrl) {
-				const chatsound: Chatsound = new Chatsound(chunk, chatsoundUrl);
+			const chatsoundUrls: Array<string> | undefined = this.lookup[chunk];
+			if (chatsoundUrls && chatsoundUrls.length > 0) {
+				const chatsound: Chatsound = new Chatsound(chunk, chatsoundUrls[selectValue >= chatsoundUrls.length ? chatsoundUrls.length - 1 : selectValue]);
 				chatsound.modifiers = chatsound.modifiers.concat(modifiers); // add the context modifiers
 
 				ret.push(chatsound);
