@@ -1,7 +1,8 @@
 {
 	"port": 6560,
-	"maxWorkers": 30,
-	"queryTimeout": 60000,
+	"cachedWorkers": 15,
+	"maxWorkers": 100,
+	"queryTimeout": 10000,
 	"fetchInterval": "0 * * * *",
 	"ghSources": [
 		{ "repo": "PAC3-Server/chatsounds", "location": "", "msgpack": false },
