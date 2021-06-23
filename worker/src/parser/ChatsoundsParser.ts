@@ -4,30 +4,13 @@ import { ChatsoundContextModifier as ChatsoundModifierContext, IChatsoundModifie
 import * as modifiers from "./modifiers";
 
 /*
-	CURRENT IMPL:
-		1) Parse contexual modifiers e.g (awdawd):echo(0, 1)
-		2) Parse chatsound in the context of the modifier
-		3) Apply the context modifiers to each chatsound
-		4) Repeat 1) 2) 3) until theres nothing left to parse
-		5) return the list of parsed chatsounds with modifiers applied to them
-
 	PROBLEMS:
-		- Legacy modifiers are chatsound-aware but not context-aware, meaning they always use the last chatsound parsed
-		- Contextual modifiers can be used in a legacy fashion: awdawd:echo
-		- Arguments for contextual modifiers also contain parenthesis and can have spaces
-		- Lua expressions in contextual modifiers
+		1) Lua expressions in modifier arguments
+		2) Recursive contexts e.g: (h yes (im retarded):echo):pitch(-1)
 
-	POSSIBLE SOLUTION:
-		Have a list of modifiers with their names, build a global regex out of the names and patterns for these modifiers
-		For each match we parse the string for chatsound before the modifiers word per word
-		If the the first character before the modifier is ")" we apply the modifier to each chatsound parsed up until we find "("
-		If there is no ")" then apply the modifier only to the last chatsound parsed
-		Return the list of parsed chatsounds along with their modifiers
-
-	=> TODO
-	-> Implement lookup table for sounds / urls
-	-> Implement modifiers
-
+	POSSIBLE SOLUTIONS:
+		1) Implement a look-a-like JS expression processor
+		2) Use the "(" and ")" to get the current depth, and parse accordingly (?)
 */
 
 export default class ChatsoundsParser {
@@ -107,6 +90,8 @@ export default class ChatsoundsParser {
 		return ret;
 	}
 
+	// This returns the lowest level context modifiers so each potential chatsound is processed only ONCE
+	// we later gather top level context modifiers and apply them to their children contexts so nothing is lost
 	private parseModifierContexts(input: string, parentCtx?: ChatsoundModifierContext): Array<ChatsoundModifierContext> {
 		let ret: Array<ChatsoundModifierContext> = [];
 		let start: number = 0;
