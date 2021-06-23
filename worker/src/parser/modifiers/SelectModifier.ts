@@ -6,7 +6,13 @@ export default class SelectModifier implements IChatsoundModifier {
 	name: string = "";
 	legacyCharacter: string = "#";
 
-	process(soundString: string): void {
-		throw new Error("Method not implemented.");
+	process(strArgs: Array<string>): void {
+		const value: number = parseInt(strArgs[0]);
+		if (isNaN(value) || value < 0) {
+			this.value = 0;
+			return;
+		}
+
+		this.value = value;
 	}
 }

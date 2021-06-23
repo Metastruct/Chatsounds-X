@@ -5,7 +5,7 @@ export default class PitchModifier implements IChatsoundModifier {
 	value: number = 0;
 	legacyCharacter: string = "%";
 
-	process(soundString: string): void {
+	process(strArgs: Array<string>): void {
 		throw new Error("Method not implemented.");
 	}
 }

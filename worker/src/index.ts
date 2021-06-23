@@ -2,7 +2,7 @@ import Chatsound from "./parser/Chatsound";
 import ChatsoundsParser from "./parser/ChatsoundsParser";
 import WebAudio from "./webaudio/WebAudio";
 
-type ChatsoundQuery = { input: string, refs: ChatsoundsLookup };
+type ChatsoundQuery = { input: string, lookup: ChatsoundsLookup };
 export type ChatsoundsLookup = { [key: string]: Array<string> }
 
 async function exampleStream(): Promise<void> {
@@ -16,7 +16,7 @@ async function exampleStream(): Promise<void> {
 
 (window as any).HANDLE = (queryString: string): Array<string> => {
 	const query: ChatsoundQuery = JSON.parse(queryString);
-	const parser: ChatsoundsParser = new ChatsoundsParser(query.refs);
+	const parser: ChatsoundsParser = new ChatsoundsParser(query.lookup);
 	const chatsounds: Array<Chatsound> = parser.parse(query.input);
 
 	// return chatsounds for test purposes

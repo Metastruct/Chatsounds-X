@@ -6,7 +6,7 @@ export default class VolumeModifier implements IChatsoundModifier {
 	legacyCharacter: string = "^";
 	escapeLegacy: boolean = true;
 
-	process(soundString: string): void {
+	process(strArgs: Array<string>): void {
 		throw new Error("Method not implemented.");
 	}
 }

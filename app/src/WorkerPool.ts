@@ -127,12 +127,12 @@ export default class WorkerPool {
 			const start = Date.now();
 			while (true) {
 				let res: EvalResult | undefined = await this.getCachedStream(code);
-				if (res?.stream) return res;
+				if (res && res.stream) return res;
 
 				// if none of the cached workers is available give a new temporary one
 				if (this.workers.length + this.tmpWorkerCount < this.maxWorkers) {
 					res = await this.getTemporaryStream(code);
-					if (res?.stream) return res;
+					if (res && res.stream) return res;
 				}
 
 				await sleep(100);

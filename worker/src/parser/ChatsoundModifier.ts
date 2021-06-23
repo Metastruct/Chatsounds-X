@@ -3,7 +3,7 @@ export interface IChatsoundModifier {
 	legacyCharacter?: string;
 	escapeLegacy?: boolean;
 	value: any;
-	process(soundString: string): void;
+	process(strArgs: Array<string>): void;
 }
 
 export class ChatsoundContextModifier {
