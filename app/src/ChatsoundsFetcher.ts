@@ -25,6 +25,22 @@ class ChatsoundsTree<T> extends Map<string, Map<string, T>> {
 
 		return JSON.stringify(jsonObject);
 	}
+
+	public concatTree(tree: ChatsoundsTree<T>) {
+		for (const [k, v] of tree) {
+			let ref = this.get(k);
+			if (!ref) ref = v;
+
+			for (const [k2, v2] of ref) {
+				let ref2 = ref.get(k2);
+				if (!ref2) ref2 = v2;
+
+				ref.set(k2, ref2);
+			}
+
+			this.set(k, ref);
+		}
+	}
 }
 
 export default class ChatsoundsFetcher {
@@ -144,8 +160,8 @@ export default class ChatsoundsFetcher {
 			}
 		}
 
-		this.tree = new ChatsoundsTree([...this.tree, ...this.tableToTree(tree)]);
-		this.list = new ChatsoundsTree([...this.list, ...list]);
+		this.tree.concatTree(this.tableToTree(tree));
+		this.list.concatTree(list);
 	}
 
 	private async buildFromGithub(repo: string, useMsgPack: boolean, location?: string): Promise<void> {
@@ -165,36 +181,34 @@ export default class ChatsoundsFetcher {
 		} else {
 			const url: string = `https://api.github.com/repos/${repo}/git/trees/master?recursive=1`;
 			const resp = await axios.get(url);
-			if (resp.status === 200) {
-				const body: string = JSON.stringify(resp.data);
-				const sounds: Array<Array<string>> = [];
-				let i: number = 0;
-				for (const match of body.matchAll(/"path":\s"([\w\/\s]+\.ogg)"(?:\n|,|})/g)) {
-					let path: string = match[1];
-					if (!path || path.length === 0) continue;
-					if (!path.startsWith(location) || !path.endsWith(".ogg")) continue;
+			const body: string = JSON.stringify(resp.data);
+			const sounds: Array<Array<string>> = [];
+			let i: number = 0;
+			for (const match of body.matchAll(/"path":\s*"([\w\/\s\.]+)"(?:\n|,|})/g)) {
+				let path: string = match[1];
+				if (!path || path.length === 0) continue;
+				if (!path.startsWith(location) || !path.endsWith(".ogg")) continue;
 
-					path = path.substring(location.length + 1);
-					const chunks: Array<string> = path.split("/");
-					const realm: string = chunks[0];
-					let trigger: string = chunks[1];
+				path = path.substring(location.length + 1);
+				const chunks: Array<string> = path.split("/");
+				const realm: string = chunks[0];
+				let trigger: string = chunks[1];
 
-					if (!chunks[2]) {
-						trigger = trigger.substring(0, trigger.length - ".ogg".length);
-					}
-
-					sounds[i] = [realm, trigger, path];
-
-					if (trigger.startsWith("-")) {
-						sounds[i][1] = sounds[i][1].substring(1);
-						sounds[i][3] = `${realm}/${trigger}.txt`;
-					}
-
-					i++;
+				if (!chunks[2]) {
+					trigger = trigger.substring(0, trigger.length - ".ogg".length);
 				}
 
-				this.readList(baseUrl, sounds);
+				sounds[i] = [realm, trigger, path];
+
+				if (trigger.startsWith("-")) {
+					sounds[i][1] = sounds[i][1].substring(1);
+					sounds[i][3] = `${realm}/${trigger}.txt`;
+				}
+
+				i++;
 			}
+
+			this.readList(baseUrl, sounds);
 		}
 	}
 
