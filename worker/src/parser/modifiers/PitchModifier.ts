@@ -6,7 +6,7 @@ export default class PitchModifier implements IChatsoundModifier {
 	legacyCharacter: string = "%";
 
 	process(strArgs: Array<string>): void {
-		const value: number = parseInt(strArgs[0]);
+		const value: number = parseFloat(strArgs[0]);
 		if (isNaN(value)) {
 			this.value = 1;
 			return;

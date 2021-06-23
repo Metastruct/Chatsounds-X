@@ -7,7 +7,7 @@ export default class VolumeModifier implements IChatsoundModifier {
 	escapeLegacy: boolean = true;
 
 	process(strArgs: Array<string>): void {
-		const value: number = parseInt(strArgs[0]);
+		const value: number = parseFloat(strArgs[0]);
 		if (isNaN(value)) {
 			this.value = 100;
 		} else if (value < 0) {
