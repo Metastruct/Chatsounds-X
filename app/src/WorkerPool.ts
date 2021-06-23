@@ -48,10 +48,12 @@ export default class WorkerPool {
 			args: ["--no-sandbox", `--display=${xvfb._display}`],
 		});
 
-		// for now don't do this
-		/*for (let i = 0; i < cachedWorkers; i++) {
-			this.workers.push(await this.newWorker());
-		}*/
+		for (let i = 0; i < cachedWorkers; i++) {
+			const worker: Worker | undefined = await this.newWorker();
+			if (!worker) continue;
+
+			this.workers.push(worker);
+		}
 
 		log("Worker pool initialized");
 	}
@@ -71,7 +73,10 @@ export default class WorkerPool {
 				worker.busy = true;
 
 				const promise: Promise<any> = worker.context.evaluate(code);
-				promise.then(() => worker.busy = false).catch(() => worker.busy = false);
+				promise.then((res) => {
+					console.debug(res);
+					worker.busy = false;
+				}).catch(() => worker.busy = false);
 
 				const stream: Stream = await getStream(worker.context, { audio: true, video: false, mimeType: "audio/ogg" });
 				return {
@@ -104,7 +109,10 @@ export default class WorkerPool {
 				}
 			};
 
-			promise.then(close).catch(close);
+			promise.then((res) => {
+				console.debug(res);
+				close();
+			}).catch(() => close());
 
 			return {
 				stream: stream,

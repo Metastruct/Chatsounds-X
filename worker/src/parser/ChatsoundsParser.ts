@@ -1,3 +1,4 @@
+import { ChatsoundsLookup } from "..";
 import Chatsound from "./Chatsound";
 import { ChatsoundContextModifier as ChatsoundModifierContext, IChatsoundModifier } from "./ChatsoundModifier";
 import * as modifiers from "./modifiers";
@@ -30,13 +31,13 @@ import * as modifiers from "./modifiers";
 */
 
 export default class ChatsoundsParser {
-	private lookup: Map<string, string>;
-	private modifierLookup: Map<string, any>;
+	private lookup: ChatsoundsLookup;
+	private modifierLookup: Map<string, () => IChatsoundModifier>;
 	private pattern: RegExp;
 
-	constructor(lookup: Map<string, string>) {
+	constructor(lookup: ChatsoundsLookup) {
 		this.lookup = lookup;
-		this.modifierLookup = new Map<string, any>();
+		this.modifierLookup = new Map<string, () => IChatsoundModifier>();
 		this.pattern = /./;
 
 		const modifierClasses = Object.entries(modifiers);
@@ -76,11 +77,21 @@ export default class ChatsoundsParser {
 
 		const entireMatch: string = regexResult.groups[0];
 		const modifierName: string = regexResult.groups[2];
-		if (entireMatch.includes(":") && this.modifierLookup.has(modifierName)) {
-			return this.modifierLookup.get(modifierName);
+		let modifierClass: (() => IChatsoundModifier) | undefined = this.modifierLookup.get(modifierName);
+		if (entireMatch.includes(":") && modifierClass) {
+			const modifier: IChatsoundModifier = modifierClass();
+			//modifier.process();
+			return modifier;
 		}
 
-		return this.modifierLookup.get(entireMatch);
+		modifierClass = this.modifierLookup.get(entireMatch);
+		if (modifierClass) {
+			const modifier: IChatsoundModifier = modifierClass();
+			//modifier.process();
+			return modifier;
+		}
+
+		return undefined;
 	}
 
 	public parse(input: string): Array<Chatsound> {
@@ -118,7 +129,11 @@ export default class ChatsoundsParser {
 		let end: number = words.length;
 		while (words.length > 0) {
 			const chunk: string = words.slice(0, end).join(" ");
-			const chatsoundUrl: string | undefined = this.lookup.get(chunk);
+
+			const selects: Array<IChatsoundModifier> = modifiers.filter(m => m.legacyCharacter === "#");
+			const selectValue: number = selects.length > 0 ? selects[selects.length - 1].value : 0;
+
+			const chatsoundUrl: string | undefined = this.lookup[chunk][selectValue];
 			if (chatsoundUrl) {
 				const chatsound: Chatsound = new Chatsound(chunk, chatsoundUrl);
 				chatsound.modifiers = chatsound.modifiers.concat(modifiers); // add the context modifiers

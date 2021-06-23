@@ -3,6 +3,7 @@ import log from "./log";
 
 const msgpack = require("msgpack-lite");
 
+type ChatsoundsLookup = { [key: string]: Array<string> }
 type ChatsoundGitHubSource = { repo: string, msgpack: boolean, location: string };
 type ChatsoundRef = { path?: string, basePath?: string };
 
@@ -31,12 +32,14 @@ export default class ChatsoundsFetcher {
 	private ghSources: Array<ChatsoundGitHubSource>;
 	private tree: ChatsoundsTree<ChatsoundsTreeNode>;
 	private list: ChatsoundsTree<string>;
+	private lookup: ChatsoundsLookup;
 	private ignoreFetchUntil: number;
 
 	constructor(ghSources: Array<ChatsoundGitHubSource>) {
 		this.ghSources = ghSources;
 		this.tree = new ChatsoundsTree<ChatsoundsTreeNode>();
 		this.list = new ChatsoundsTree<string>();
+		this.lookup = {};
 		this.ignoreFetchUntil = -1;
 	}
 
@@ -59,6 +62,17 @@ export default class ChatsoundsFetcher {
 				}
 
 				log(`Failed to fetch chatsounds at \'${source.repo}/${source.location}\': ${err.message}`);
+			}
+		}
+
+		this.lookup = {};
+		for (const [_, trigger] of this.list) {
+			for (const [name, url] of trigger) {
+				if (!this.lookup[name]) {
+					this.lookup[name] = [ url ];
+				} else {
+					this.lookup[name].push(url);
+				}
 			}
 		}
 	}
@@ -114,12 +128,14 @@ export default class ChatsoundsFetcher {
 			if (!triggerUrl) {
 				let treeRef: Map<string, ChatsoundRef> | undefined = tree.get(realm);
 				if (treeRef === undefined) treeRef = new Map<string, ChatsoundRef>();
+
 				treeRef.set(trigger, { path: path, basePath: baseUrl });
 				tree.set(realm, treeRef);
 
 				let listRef: Map<string, string> | undefined = list.get(realm);
 				if (listRef === undefined) listRef = new Map<string, string>();
-				listRef.set(trigger, path);
+
+				listRef.set(trigger, baseUrl + path);
 				list.set(realm, listRef);
 			}
 		}
@@ -180,11 +196,11 @@ export default class ChatsoundsFetcher {
 		}
 	}
 
-	public getTree(): ChatsoundsTree<ChatsoundsTreeNode> {
-		return this.tree;
-	}
-
 	public getList(): ChatsoundsTree<string> {
 		return this.list;
+	}
+
+	public getLookup(): ChatsoundsLookup {
+		return this.lookup;
 	}
 }

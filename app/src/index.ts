@@ -32,7 +32,7 @@ function tryProcessQuery(query: string): string | undefined {
 	try {
 		query = decodeURIComponent(query);
 		log(`Processing query: ${query}`);
-		return "HANDLE(`" + JSON.stringify({ input: query, lookup: fetcher.getList() }) + "`);"
+		return "HANDLE(`" + JSON.stringify({ input: query, lookup: fetcher.getLookup() }) + "`);"
 	} catch (err) {
 		log(`Could not process query ${err.message}`);
 		return undefined;
