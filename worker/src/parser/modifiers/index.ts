@@ -5,19 +5,24 @@ import RepeatModifier from "./RepeatModifier";
 import SelectModifier from "./SelectModifier";
 import VolumeModifier from "./VolumeModifier";
 import LfoPitchModifier from "./LfoPitchModifier";
+import CutOffModifier from "./CutOffModifier";
+import SkipModifier from "./SkipModifier";
 
-export { EchoModifier, PitchModifier, RealmModifier, RepeatModifier, SelectModifier, VolumeModifier, LfoPitchModifier };
+export {
+	EchoModifier,
+	PitchModifier,
+	RealmModifier,
+	RepeatModifier,
+	SelectModifier,
+	VolumeModifier,
+	LfoPitchModifier,
+	CutOffModifier,
+	SkipModifier,
+};
 
 // TODO: IMPLEMENT THOSE
-/*chatsounds.LegacyModifiers = {
-	["%%"] = "legacypitch",
-	["%"] = "legacypitch",
-	["^^"] = "legacyvolume",
-	["^"] = "legacyvolume",
-	["++"] = "startpos",
-	["--"] = "cutoff",
-	["#"] = "choose",
-	["="] = "legacyduration",
-	["*"] = "repeat",
-}
+/*
+["%%"] = "legacypitch",
+["^^"] = "legacyvolume",
+["="] = "legacyduration",
 */

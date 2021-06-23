@@ -1,6 +1,6 @@
 import axios from "axios";
 import log from "./log";
-import { decode, decodeArrayStream, decodeMulti } from "@msgpack/msgpack";
+import { decodeArrayStream } from "@msgpack/msgpack";
 
 export type ChatsoundsLookup = { [key: string]: Array<string> }
 type ChatsoundGitHubSource = { repo: string, msgpack: boolean, location: string };
