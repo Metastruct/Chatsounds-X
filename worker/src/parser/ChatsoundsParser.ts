@@ -55,23 +55,23 @@ export default class ChatsoundsParser {
 		this.pattern = new RegExp(`(?:${modernPattern})|(?:${legacyPattern})`, "giu");
 	}
 
-	private tryGetModifier(regexResult: RegExpMatchArray): IChatsoundModifier | undefined {
-		const modifierName: string = regexResult[1];
+	private tryGetModifier(match: RegExpMatchArray): IChatsoundModifier | undefined {
+		const modifierName: string = match[1];
 		let modifierClass = this.modifierLookup.get(modifierName);
 		if (modifierClass) {
 			const modifier = new modifierClass();
-			if (regexResult[3]) {
-				const args: Array<string> = regexResult[3].split(",").map(chunk => chunk.trim());
+			if (match[3]) {
+				const args: Array<string> = match[3].split(",").map(chunk => chunk.trim());
 				modifier.process(args);
 			}
 
 			return modifier;
 		}
 
-		const legacyChar: string = regexResult[4];
+		const legacyChar: string = match[4];
 		modifierClass = this.modifierLookup.get(legacyChar);
 		if (modifierClass) {
-			const arg: string = regexResult[5];
+			const arg: string = match[5];
 			const modifier = new modifierClass();
 			modifier.process([arg]);
 			return modifier;
@@ -90,9 +90,103 @@ export default class ChatsoundsParser {
 		return ret;
 	}
 
+	// returns the parsed modifier along with the total length for all the modifiers parsed in the string
+	private parseModifiers(input: string, startIndex: number): [Array<IChatsoundModifier>, number] {
+		const pattern: string = "^" + this.pattern;
+		const modifiers: Array<IChatsoundModifier> = []
+		let start: number = startIndex;
+		do {
+			const match: RegExpMatchArray | null = input.substring(start).match(pattern);
+			if (match) {
+				const modifier: IChatsoundModifier | undefined = this.tryGetModifier(match);
+				if (modifier) {
+					modifiers.push(modifier);
+					start += (match[0].length - 1);
+				} else {
+					start = -1;
+				}
+			}
+		} while (start !== -1);
+
+		return [modifiers, start];
+	}
+
+	private getLastDelimiterIndex(input: string): number {
+		const matches: Array<RegExpMatchArray> = Array.from((input).matchAll(/(^|[\s\n\t])/g));
+		if (matches.length === 0) return -1;
+
+		const lastMatch: RegExpMatchArray = matches[matches.length - 1];
+		return lastMatch && lastMatch.index ? lastMatch.index : -1;
+	}
+
 	// This returns the lowest level context modifiers so each potential chatsound is processed only ONCE
 	// we later gather top level context modifiers and apply them to their children contexts so nothing is lost
 	private parseModifierContexts(input: string, parentCtx?: ChatsoundModifierContext): Array<ChatsoundModifierContext> {
+		const ret: Array<ChatsoundModifierContext> = [];
+
+		input += ")"; // add a ")" to the input to finish the global scope of the input
+		let depthCache: Map<number, ChatsoundModifierContext> = new Map<number, ChatsoundModifierContext>();
+		let curDepth: number = 0;
+		for (let i = 0; i < input.length; i++) {
+			const char: string = input[i];
+
+			let ctx: ChatsoundModifierContext | undefined = depthCache.get(curDepth);
+			if (!ctx) {
+				ctx = new ChatsoundModifierContext();
+				ctx.isScoped = true;
+				depthCache.set(curDepth, ctx);
+			}
+
+			if (char === "(") {
+				curDepth++;
+			} else if (char === ")") {
+				// finalize parsing for the context that we've been processing
+				const [modifiers, len] = this.parseModifiers(input, i + 1);
+				ctx.addModifiers(modifiers);
+
+				// skip the chars that are part of the modifiers
+				i = i + len - 1; // -1 to account for the loop ++
+
+				const parentCtx: ChatsoundModifierContext | undefined = depthCache.get(curDepth - 1);
+				if (parentCtx) {
+					ctx.parentContext = parentCtx;
+					parentCtx.isParent = true;
+				}
+
+				ret.push(ctx);
+				depthCache.delete(curDepth);
+				curDepth--;
+
+				// we've processed global scope trigger character, finish looping
+				if (curDepth < 0) break;
+			}
+
+			ctx.append(char);
+
+			// we check in case we have a modifier thats not part of a scope
+			const [modifiers, len] = this.parseModifiers(input, i + 1);
+			if (len !== -1 && modifiers.length > 0) {
+				// skip the chars that are part of the modifiers
+				i = i + len - 1; // -1 to account for the loop ++
+
+				const index = this.getLastDelimiterIndex(input.substring(0, i));
+				if (index !== -1) {
+					const chunk: string = input.substring(index, i);
+					const newCtx: ChatsoundModifierContext = new ChatsoundModifierContext(chunk, modifiers);
+					newCtx.parentContext = ctx;
+					ctx.isParent = true;
+
+					ret.push(newCtx);
+				}
+			}
+		}
+
+		return ret.filter(ctx => !ctx.isParent);
+	}
+
+	// This returns the lowest level context modifiers so each potential chatsound is processed only ONCE
+	// we later gather top level context modifiers and apply them to their children contexts so nothing is lost
+	/*private parseModifierContexts(input: string, parentCtx?: ChatsoundModifierContext): Array<ChatsoundModifierContext> {
 		let ret: Array<ChatsoundModifierContext> = [];
 		let start: number = 0;
 		let lastCtx: ChatsoundModifierContext | undefined = undefined;
@@ -112,18 +206,9 @@ export default class ChatsoundsParser {
 
 				continue;
 			}
-
-			if (precedingChunk.match(/\)\s*/)) {
-				const index: number = precedingChunk.lastIndexOf("(");
-				const subChunk: string = input.substr(index, match.index);
-				const ctx: ChatsoundModifierContext = new ChatsoundModifierContext(subChunk, modifiersToAdd, true);
-				if (parentCtx) {
-					ctx.parentContext = parentCtx;
-					parentCtx.isParent = true;
-				}
-
-				ret = ret.concat(this.parseModifierContexts(subChunk, ctx));
-				lastCtx = ctx;
+			*/
+			//if (precedingChunk.match(/\)\s*/)) {
+			/*	// whatever
 			} else {
 				const ctx: ChatsoundModifierContext = new ChatsoundModifierContext(precedingChunk, modifiersToAdd);
 				if (parentCtx) {
@@ -148,7 +233,7 @@ export default class ChatsoundsParser {
 		ret.push(ctx);
 
 		return ret.filter(ctx => !ctx.isParent);
-	}
+	}*/
 
 	private parseContext(ctx: ChatsoundModifierContext): Array<Chatsound> {
 		const ret: Array<Chatsound> = [];
@@ -192,7 +277,9 @@ export default class ChatsoundsParser {
 				lastChatsound.modifiers = lastChatsound.modifiers.concat(modifiers);
 			}
 		} else {
-			ret.map(chatsound => chatsound.modifiers = chatsound.modifiers.concat(modifiers));
+			for (const chatsound of ret) {
+				chatsound.modifiers = chatsound.modifiers.concat(modifiers);
+			}
 		}
 
 		return ret;
