@@ -13,7 +13,7 @@ export class ChatsoundContextModifier {
 	public isParent: boolean;
 	public isScoped: boolean;
 
-	constructor(content: string, modifiers: Array<IChatsoundModifier>, isScoped: boolean = false) {
+	constructor(content: string = "", modifiers: Array<IChatsoundModifier> = [], isScoped: boolean = false) {
 		this.content = content;
 		this.modifiers = modifiers;
 		this.isParent = false;
@@ -29,5 +29,13 @@ export class ChatsoundContextModifier {
 		} while (ctx)
 
 		return ret;
+	}
+
+	public append(str: string): void {
+		this.content += str;
+	}
+
+	public addModifiers(modifiers: Array<IChatsoundModifier>): void {
+		this.modifiers = this.modifiers.concat(modifiers);
 	}
 }
