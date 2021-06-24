@@ -6,22 +6,22 @@ import * as modifiers from "./modifiers";
 /*
 	PROBLEMS:
 		1) Lua expressions in modifier arguments
-		2) Recursive contexts e.g: (h yes (im retarded):echo):pitch(-1)
 
 	POSSIBLE SOLUTIONS:
 		1) Implement a look-a-like JS expression processor
-		2) Use the "(" and ")" to get the current depth, and parse accordingly (?)
 */
 
 export default class ChatsoundsParser {
 	private lookup: ChatsoundsLookup;
 	private modifierLookup: Map<string, any>;
-	private pattern: RegExp;
+	private patternStartsWith: RegExp;
+	private patternIncludes: RegExp;
 
 	constructor(lookup: ChatsoundsLookup) {
 		this.lookup = lookup;
 		this.modifierLookup = new Map<string, any>();
-		this.pattern = /./;
+		this.patternStartsWith = /./;
+		this.patternIncludes = /./;
 
 		const modifierClasses = Object.entries(modifiers);
 		this.buildModifierLookup(modifierClasses);
@@ -52,7 +52,8 @@ export default class ChatsoundsParser {
 			.map(modifier => modifier.escapeLegacy ? "\\" + modifier.legacyCharacter : modifier.legacyCharacter)
 			.join("|") + ")([0-9]+)?";
 
-		this.pattern = new RegExp(`^(?:${modernPattern})|(?:${legacyPattern})`, "giu");
+		this.patternStartsWith = new RegExp(`^(?:${modernPattern})|^(?:${legacyPattern})`, "giu");
+		this.patternIncludes = new RegExp(`(?:${modernPattern})|(?:${legacyPattern})`, "giu");
 	}
 
 	private tryGetModifier(match: RegExpMatchArray): IChatsoundModifier | undefined {
@@ -80,14 +81,14 @@ export default class ChatsoundsParser {
 		return undefined;
 	}
 
-	public parse(input: string): any{//Array<Chatsound> {
+	public parse(input: string): Array<Chatsound> {
 		let ret: Array<Chatsound> = [];
 		const ctxs: Array<ChatsoundModifierContext> = this.parseContexts(input);
 		for (const ctx of ctxs) {
 			ret = ret.concat(this.parseProcessedContext(ctx));
 		}
 
-		return ctxs;
+		return ret;
 	}
 
 	// returns the parsed modifier along with the total length for all the modifiers parsed in the string
@@ -96,7 +97,7 @@ export default class ChatsoundsParser {
 
 		let start: number = startIndex;
 		while (true) {
-			const match: RegExpMatchArray | null = input.substring(start, input.length).match(this.pattern);
+			const match: RegExpMatchArray | null = this.patternStartsWith.exec(input.substring(start, input.length));
 			if (match) {
 				const modifier: IChatsoundModifier | undefined = this.tryGetModifier(match);
 				if (modifier) {
@@ -110,27 +111,22 @@ export default class ChatsoundsParser {
 			}
 		}
 
-		return [modifiers, start];
+		return [modifiers, start - startIndex];
 	}
 
 	private getLastDelimiterIndex(input: string): number {
-		const matches: Array<RegExpMatchArray> = Array.from((input).matchAll(/(^|\()/g));
+		const matches: Array<RegExpMatchArray> = Array.from((input).matchAll(this.patternIncludes));
 		if (matches.length === 0) return -1;
 
-		for (let i = matches.length; i >= 0; i--) {
-			const match: RegExpMatchArray = matches[i];
+		const lastModifierMatch: RegExpMatchArray = matches[matches.length - 1];
+		if (!lastModifierMatch || !lastModifierMatch.index) return -1;
 
-			// if that happens then this is fundamentally broken and
-			// we want nothing to do with it
-			if (!match.index) return -1;
+		const chunkStartIndex: number = lastModifierMatch.index + lastModifierMatch[0].length;
+		const chunk: string = input.substring(chunkStartIndex);
+		const chunkScopeIndex: number = chunk.lastIndexOf("(");
+		if (chunkScopeIndex === -1) return chunkStartIndex + 1;
 
-			const chunk: string = input.substring(match.index);
-			if (chunk.match(/^\([0-9.\s,-]+\)/g)) continue;
-
-			return match.index;
-		}
-
-		return -1;
+		return chunkStartIndex + chunkScopeIndex + 1;
 	}
 
 	// This returns the lowest level context modifiers so each potential chatsound is processed only ONCE
@@ -160,7 +156,7 @@ export default class ChatsoundsParser {
 					ctx.addModifiers(modifiers);
 
 					// skip the chars that are part of the modifiers
-					i = i + len; // -1 to account for the loop ++
+					i = i + len;
 				}
 
 				const parentCtx: ChatsoundModifierContext | undefined = depthCache.get(curDepth - 1);
@@ -174,10 +170,13 @@ export default class ChatsoundsParser {
 				curDepth--;
 
 				// we've processed global scope trigger character, finish looping
-				if (curDepth < 0) break;
+				if (curDepth < 0) {
+					// remove the extra ")"
+					ctx.content = ctx.content.substring(0, ctx.content.length);
+				}
+			} else {
+				ctx.append(char);
 			}
-
-			ctx.append(char);
 
 			// we check in case we have a modifier thats not part of a scope
 			const [modifiers, len] = this.parseModifiers(input, i + 1);
@@ -187,7 +186,7 @@ export default class ChatsoundsParser {
 					index = 0;
 				}
 
-				const chunk: string = input.substring(index, i);
+				const chunk: string = input.substring(index, i + 1).replace(")", "").replace("(", "").trim();
 				const newCtx: ChatsoundModifierContext = new ChatsoundModifierContext(chunk, modifiers, false);
 				newCtx.parentContext = ctx;
 				ctx.isParent = true;
@@ -195,7 +194,7 @@ export default class ChatsoundsParser {
 				ret.push(newCtx);
 
 				// skip the chars that are part of the modifiers
-				i = i + len; // -1 to account for the loop ++
+				i = i + len;
 			}
 		}
 
