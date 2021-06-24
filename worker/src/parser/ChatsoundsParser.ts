@@ -116,7 +116,7 @@ export default class ChatsoundsParser {
 			if (precedingChunk.match(/\)\s*/)) {
 				const index: number = precedingChunk.lastIndexOf("(");
 				const subChunk: string = input.substr(index, match.index);
-				const ctx: ChatsoundModifierContext = new ChatsoundModifierContext(subChunk, modifiersToAdd);
+				const ctx: ChatsoundModifierContext = new ChatsoundModifierContext(subChunk, modifiersToAdd, true);
 				if (parentCtx) {
 					ctx.parentContext = parentCtx;
 					parentCtx.isParent = true;
@@ -168,8 +168,6 @@ export default class ChatsoundsParser {
 				if (selectValue === 0) internalSelectValue = Math.floor(chatsoundUrls.length * Math.random());
 
 				const chatsound: Chatsound = new Chatsound(chunk, chatsoundUrls[internalSelectValue]);
-				chatsound.modifiers = chatsound.modifiers.concat(modifiers); // add the context modifiers
-
 				ret.push(chatsound);
 
 				// remove the parsed chatsound and reset our processing vars
@@ -186,6 +184,15 @@ export default class ChatsoundsParser {
 					end = words.length;
 				}
 			}
+		}
+
+		if (!ctx.isScoped) {
+			const lastChatsound: Chatsound = ret[ret.length - 1];
+			if (lastChatsound) {
+				lastChatsound.modifiers = lastChatsound.modifiers.concat(modifiers);
+			}
+		} else {
+			ret.map(chatsound => chatsound.modifiers = chatsound.modifiers.concat(modifiers));
 		}
 
 		return ret;
