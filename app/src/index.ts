@@ -25,8 +25,8 @@ if (!fs.existsSync(workerPath)) {
 }
 
 const fetcher: ChatsoundsFetcher = new ChatsoundsFetcher(config.ghSources);
-//schedule.scheduleJob(config.fetchInterval, async () => await fetcher.fetch());
-//fetcher.fetch();
+schedule.scheduleJob(config.fetchInterval, async () => await fetcher.fetch());
+fetcher.fetch();
 
 function error(res: any, err: string): any {
 	log(err);
