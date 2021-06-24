@@ -22,7 +22,7 @@ function streamHandler(queryString: string): ChatsoundResponse<string> {
 	}
 }
 
-function parseHandler(queryString: string): ChatsoundResponse<Array<Chatsound>> {
+function parseHandler(queryString: string): ChatsoundResponse<any> {
 	try {
 		const query: ChatsoundQuery = JSON.parse(queryString);
 		const parser: ChatsoundsParser = new ChatsoundsParser(query.lookup);
