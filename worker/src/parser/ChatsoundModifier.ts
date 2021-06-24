@@ -11,11 +11,13 @@ export class ChatsoundContextModifier {
 	public modifiers: Array<IChatsoundModifier>;
 	public parentContext?: ChatsoundContextModifier;
 	public isParent: boolean;
+	public isScoped: boolean;
 
-	constructor(content: string, modifiers: Array<IChatsoundModifier>) {
+	constructor(content: string, modifiers: Array<IChatsoundModifier>, isScoped: boolean = false) {
 		this.content = content;
 		this.modifiers = modifiers;
 		this.isParent = false;
+		this.isScoped = isScoped;
 	}
 
 	public getAllModifiers(): Array<IChatsoundModifier> {
