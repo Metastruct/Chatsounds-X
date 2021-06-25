@@ -12,12 +12,14 @@ export class ChatsoundContextModifier {
 	public parentContext?: ChatsoundContextModifier;
 	public isParent: boolean;
 	public isScoped: boolean;
+	public illegalCharPattern: RegExp;
 
 	constructor(content: string = "", modifiers: Array<IChatsoundModifier> = [], isScoped: boolean = false) {
 		this.content = content;
 		this.modifiers = modifiers;
 		this.isParent = false;
 		this.isScoped = isScoped;
+		this.illegalCharPattern = /[()!?]+/g;
 	}
 
 	public getAllModifiers(): Array<IChatsoundModifier> {
@@ -32,7 +34,7 @@ export class ChatsoundContextModifier {
 	}
 
 	public append(str: string): void {
-		this.content += str;
+		this.content += str.replace(this.illegalCharPattern, "");
 	}
 
 	public addModifiers(modifiers: Array<IChatsoundModifier>): void {
