@@ -76,10 +76,7 @@ export default class WorkerPool {
 				worker.busy = true;
 
 				const promise: Promise<any> = worker.context.evaluate(code);
-				promise.then((res) => {
-					console.debug(res);
-					worker.busy = false;
-				}).catch(() => worker.busy = false);
+				promise.then(() => worker.busy = false).catch(() => worker.busy = false);
 
 				const stream: Stream = await getStream(worker.context, { audio: true, video: false, mimeType: "audio/ogg" });
 				return {
@@ -112,10 +109,7 @@ export default class WorkerPool {
 				}
 			};
 
-			promise.then((res) => {
-				console.debug(res);
-				close();
-			}).catch(() => close());
+			promise.then(() => close()).catch(() => close());
 
 			return {
 				stream: stream,
@@ -183,8 +177,10 @@ export default class WorkerPool {
 			const code: string = this.processParseQuery(query, lookup);
 			const worker: Worker | undefined = await this.newWorker();
 			if (worker) {
+				const result = await worker.context.evaluate(code);
+				worker.context.close(); // don't await close, send the result right away
 				return {
-					result: await worker.context.evaluate(code),
+					result: result,
 				}
 			} else {
 				return {
