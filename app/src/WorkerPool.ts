@@ -6,7 +6,7 @@ import { ChatsoundsLookup } from "./ChatsoundsFetcher";
 
 const Xvfb = require("xvfb"); // this doesnt like to be imported
 
-export type Worker = { busy: boolean, context: any };
+export type Worker = { working: boolean, context: any };
 export type StreamResult = { stream?: Stream, error?: Error };
 export type ParseResult = { result?: any, error?: Error };
 
@@ -67,16 +67,16 @@ export default class WorkerPool {
 		const page = await this.browser.newPage();
 		await page.goto("file:///" + path.resolve(__dirname, "../../worker/index.html"));
 
-		return { busy: false, context: page };
+		return { working: false, context: page };
 	}
 
 	private async getCachedStream(code: string): Promise<StreamResult | undefined> {
 		for (const worker of this.workers) {
-			if (!worker.busy) {
-				worker.busy = true;
+			if (!worker.working) {
+				worker.working = true;
 
 				const promise: Promise<any> = worker.context.evaluate(code);
-				promise.then(() => worker.busy = false).catch(() => worker.busy = false);
+				promise.finally(() => worker.working = false);
 
 				const stream: Stream = await getStream(worker.context, { audio: true, video: false, mimeType: "audio/ogg" });
 				return {
@@ -109,7 +109,7 @@ export default class WorkerPool {
 				}
 			};
 
-			promise.then(() => close()).catch(() => close());
+			promise.finally(() => close());
 
 			return {
 				stream: stream,
