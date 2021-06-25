@@ -164,7 +164,7 @@ export default class WorkerPool {
 		return "HANDLE_PARSE(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
 	}
 
-	public async parse(query: string, lookup: ChatsoundsLookup): Promise<any> {
+	public async parse(query: string, lookup: ChatsoundsLookup): Promise<ParseResult> {
 		try {
 			log(`Processing parse query: ${query}`);
 

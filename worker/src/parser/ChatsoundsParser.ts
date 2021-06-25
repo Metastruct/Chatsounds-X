@@ -82,13 +82,14 @@ export default class ChatsoundsParser {
 	}
 
 	public parse(input: string): Array<Chatsound> {
-		let ret: Array<Chatsound> = [];
-		const ctxs: Array<ChatsoundModifierContext> = this.parseContexts(input);
-		for (const ctx of ctxs) {
-			ret = ret.concat(this.parseProcessedContext(ctx));
+		let chatsounds: Array<Chatsound> = [];
+
+		const contexts: Array<ChatsoundModifierContext> = this.parseContexts(input);
+		for (const ctx of contexts) {
+			chatsounds = chatsounds.concat(this.parseProcessedContext(ctx));
 		}
 
-		return ret;
+		return chatsounds;
 	}
 
 	// returns the parsed modifier along with the total length for all the modifiers parsed in the string
@@ -132,16 +133,14 @@ export default class ChatsoundsParser {
 	// This returns the lowest level context modifiers so each potential chatsound is processed only ONCE
 	// we later gather top level context modifiers and apply them to their children contexts so nothing is lost
 	private parseContexts(input: string): Array<ChatsoundModifierContext> {
-		const ret: Array<ChatsoundModifierContext> = [];
+		const contexts: Array<ChatsoundModifierContext> = [];
 
 		const volMarksMatch: RegExpMatchArray | null = input.match(/[!1]+$/);
-		let volModifier: IChatsoundModifier | undefined = undefined;
 		if (volMarksMatch) {
-			volModifier = new modifiers.VolumeModifier();
-			volModifier.value = Math.min(100 + volMarksMatch[0].length * 10, 300);
+			const len: number = volMarksMatch[0].length;
+			input = `(${input.substring(0, input.length - len)}):volume(${Math.min(100 + len * 20, 300)})`;
 		}
 
-		input += ")"; // add a ")" to the input to finish the global scope of the input
 		let depthCache: Map<number, ChatsoundModifierContext> = new Map<number, ChatsoundModifierContext>();
 		let curDepth: number = 0;
 		for (let i = 0; i < input.length; i++) {
@@ -150,17 +149,18 @@ export default class ChatsoundsParser {
 			let ctx: ChatsoundModifierContext | undefined = depthCache.get(curDepth);
 			if (!ctx) {
 				ctx = new ChatsoundModifierContext();
-				ctx.isScoped = curDepth > 0;
-				if (curDepth === 0 && volModifier) {
-					ctx.addModifiers([volModifier]);
-				}
-
+				ctx.setScoped(true);
 				depthCache.set(curDepth, ctx);
 			}
 
 			if (char === "(") {
 				curDepth++;
-			} else if (char === ")") {
+			} else if (char === ")" || i >= input.length - 1) {
+				// if we are at the end, add the last char
+				if (char !== ")") {
+					ctx.append(char);
+				}
+
 				// finalize parsing for the context that we've been processing
 				const [modifiers, len] = this.parseModifiers(input, i + 1);
 				if (modifiers.length > 0) {
@@ -176,15 +176,9 @@ export default class ChatsoundsParser {
 					parentCtx.isParent = true;
 				}
 
-				ret.push(ctx);
+				contexts.push(ctx);
 				depthCache.delete(curDepth);
 				curDepth--;
-
-				// we've processed global scope trigger character, finish looping
-				if (curDepth < 0) {
-					// remove the extra ")"
-					ctx.content = ctx.content.substring(0, ctx.content.length);
-				}
 			} else {
 				ctx.append(char);
 			}
@@ -202,18 +196,33 @@ export default class ChatsoundsParser {
 				newCtx.parentContext = ctx;
 				ctx.isParent = true;
 
-				ret.push(newCtx);
+				contexts.push(newCtx);
 
 				// skip the chars that are part of the modifiers
 				i = i + len;
 			}
 		}
 
-		return ret.filter(ctx => !ctx.isParent);
+		return contexts.filter(ctx => !ctx.isParent);
+	}
+
+	private applyModifiers(chatsounds: Array<Chatsound>, modifiers: Array<IChatsoundModifier>): void {
+		const lastChatsound: Chatsound = chatsounds[chatsounds.length - 1];
+		for (const modifier of modifiers) {
+			if (modifier.isScoped) {
+				if (lastChatsound) {
+					lastChatsound.modifiers.push(modifier);
+				}
+			} else {
+				for (const chatsound of chatsounds) {
+					chatsound.modifiers.push(modifier);
+				}
+			}
+		}
 	}
 
 	private parseProcessedContext(ctx: ChatsoundModifierContext): Array<Chatsound> {
-		const ret: Array<Chatsound> = [];
+		const chatsounds: Array<Chatsound> = [];
 		const modifiers: Array<IChatsoundModifier> = ctx.getAllModifiers();
 
 		const selects: Array<IChatsoundModifier> = modifiers.filter(m => m.legacyCharacter === "#");
@@ -230,7 +239,7 @@ export default class ChatsoundsParser {
 				if (selectValue === 0) internalSelectValue = Math.floor(chatsoundUrls.length * Math.random());
 
 				const chatsound: Chatsound = new Chatsound(chunk, chatsoundUrls[internalSelectValue]);
-				ret.push(chatsound);
+				chatsounds.push(chatsound);
 
 				// remove the parsed chatsound and reset our processing vars
 				// so it's not parsed twice
@@ -248,17 +257,7 @@ export default class ChatsoundsParser {
 			}
 		}
 
-		if (!ctx.isScoped) {
-			const lastChatsound: Chatsound = ret[ret.length - 1];
-			if (lastChatsound) {
-				lastChatsound.modifiers = lastChatsound.modifiers.concat(modifiers);
-			}
-		} else {
-			for (const chatsound of ret) {
-				chatsound.modifiers = chatsound.modifiers.concat(modifiers);
-			}
-		}
-
-		return ret;
+		this.applyModifiers(chatsounds, modifiers);
+		return chatsounds;
 	}
 }

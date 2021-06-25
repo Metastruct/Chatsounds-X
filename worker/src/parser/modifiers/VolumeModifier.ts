@@ -5,6 +5,7 @@ export default class VolumeModifier implements IChatsoundModifier {
 	value: number = 100;
 	legacyCharacter: string = "^";
 	escapeLegacy: boolean = true;
+	isScoped: boolean = false;
 
 	process(strArgs: Array<string>): void {
 		const value: number = parseFloat(strArgs[0]);

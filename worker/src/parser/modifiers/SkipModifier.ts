@@ -5,6 +5,7 @@ export default class SkipModifier implements IChatsoundModifier {
 	value: number = 0;
 	legacyCharacter: string = "++";
 	escapeLegacy: boolean = true;
+	isScoped: boolean = false;
 
 	process(strArgs: Array<string>): void {
 		const value: number = parseFloat(strArgs[0]);

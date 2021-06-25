@@ -3,15 +3,17 @@ export interface IChatsoundModifier {
 	legacyCharacter?: string;
 	escapeLegacy?: boolean;
 	value: any;
+	isScoped: boolean;
 	process(strArgs: Array<string>): void;
 }
 
 export class ChatsoundContextModifier {
+	private isScoped: boolean;
+
 	public content: string;
 	public modifiers: Array<IChatsoundModifier>;
 	public parentContext?: ChatsoundContextModifier;
 	public isParent: boolean;
-	public isScoped: boolean;
 	public illegalCharPattern: RegExp;
 
 	constructor(content: string = "", modifiers: Array<IChatsoundModifier> = [], isScoped: boolean = false) {
@@ -20,6 +22,10 @@ export class ChatsoundContextModifier {
 		this.isParent = false;
 		this.isScoped = isScoped;
 		this.illegalCharPattern = /[()!?]+/g;
+
+		for (const modifier of this.modifiers) {
+			modifier.isScoped = this.isScoped;
+		}
 	}
 
 	public getAllModifiers(): Array<IChatsoundModifier> {
@@ -38,6 +44,16 @@ export class ChatsoundContextModifier {
 	}
 
 	public addModifiers(modifiers: Array<IChatsoundModifier>): void {
-		this.modifiers = this.modifiers.concat(modifiers);
+		for (const modifier of modifiers) {
+			modifier.isScoped = this.isScoped;
+			this.modifiers.push(modifier);
+		}
+	}
+
+	public setScoped(scoped: boolean): void {
+		this.isScoped = scoped;
+		for (const modifier of this.modifiers) {
+			modifier.isScoped = this.isScoped;
+		}
 	}
 }

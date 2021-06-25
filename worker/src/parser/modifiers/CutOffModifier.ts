@@ -4,6 +4,7 @@ export default class CutOffModifier implements IChatsoundModifier {
 	name: string = "cutoff";
 	value: number = 0;
 	legacyCharacter: string = "--";
+	isScoped: boolean = false;
 
 	process(strArgs: Array<string>): void {
 		const value: number = parseFloat(strArgs[0]);
