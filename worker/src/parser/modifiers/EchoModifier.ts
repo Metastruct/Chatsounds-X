@@ -3,6 +3,7 @@ import { IChatsoundModifier } from "../ChatsoundModifier";
 export default class EchoModifier implements IChatsoundModifier {
 	name: string = "echo";
 	value: [number, number] = [0, 0];
+	isScoped: boolean = false;
 
 	private castArgToNum(input: string): number {
 		const n: number = parseFloat(input);

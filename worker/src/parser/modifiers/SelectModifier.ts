@@ -5,6 +5,7 @@ export default class SelectModifier implements IChatsoundModifier {
 	value: number = 0;
 	name: string = "";
 	legacyCharacter: string = "#";
+	isScoped: boolean = false;
 
 	process(strArgs: Array<string>): void {
 		const value: number = parseFloat(strArgs[0]);

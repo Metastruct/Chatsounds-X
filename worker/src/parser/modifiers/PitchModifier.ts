@@ -4,6 +4,7 @@ export default class PitchModifier implements IChatsoundModifier {
 	name: string = "pitch";
 	value: number = 1;
 	legacyCharacter: string = "%";
+	isScoped: boolean = false;
 
 	process(strArgs: Array<string>): void {
 		const value: number = parseFloat(strArgs[0]);

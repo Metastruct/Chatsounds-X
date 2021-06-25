@@ -3,6 +3,7 @@ import { IChatsoundModifier } from "../ChatsoundModifier";
 export default class LfoPitchModifier implements IChatsoundModifier {
 	name: string = "lfopitch";
 	value: [number, number] = [0, 0];
+	isScoped: boolean = false;
 
 	private castArgToNum(input: string): number {
 		const n: number = parseFloat(input);
