@@ -134,6 +134,13 @@ export default class ChatsoundsParser {
 	private parseContexts(input: string): Array<ChatsoundModifierContext> {
 		const ret: Array<ChatsoundModifierContext> = [];
 
+		const volMarksMatch: RegExpMatchArray | null = input.match(/[!1]+$/);
+		let volModifier: IChatsoundModifier | undefined = undefined;
+		if (volMarksMatch) {
+			volModifier = new modifiers.VolumeModifier();
+			volModifier.value = Math.min(100 + volMarksMatch[0].length * 10, 300);
+		}
+
 		input += ")"; // add a ")" to the input to finish the global scope of the input
 		let depthCache: Map<number, ChatsoundModifierContext> = new Map<number, ChatsoundModifierContext>();
 		let curDepth: number = 0;
@@ -144,6 +151,10 @@ export default class ChatsoundsParser {
 			if (!ctx) {
 				ctx = new ChatsoundModifierContext();
 				ctx.isScoped = curDepth > 0;
+				if (curDepth === 0 && volModifier) {
+					ctx.addModifiers([volModifier]);
+				}
+
 				depthCache.set(curDepth, ctx);
 			}
 
