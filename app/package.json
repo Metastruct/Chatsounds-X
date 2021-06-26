@@ -5,10 +5,12 @@
 	"main": "index.js",
 	"dependencies": {
 		"@msgpack/msgpack": "^2.7.0",
+		"@types/guid": "^1.0.0",
 		"axios": "^0.21.1",
 		"dateformat": "^4.5.1",
 		"express": "^4.17.1",
 		"fs": "0.0.1-security",
+		"guid": "^0.0.12",
 		"https": "^1.0.0",
 		"node-schedule": "^2.0.0",
 		"puppeteer": "^10.0.0",
