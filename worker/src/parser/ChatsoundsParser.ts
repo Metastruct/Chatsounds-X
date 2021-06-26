@@ -207,7 +207,7 @@ export default class ChatsoundsParser {
 	private applyModifiers(chatsounds: Array<Chatsound>, modifiers: Array<IChatsoundModifier>): void {
 		const lastChatsound: Chatsound = chatsounds[chatsounds.length - 1];
 		for (const modifier of modifiers) {
-			if (modifier.isScoped) {
+			if (!modifier.isScoped) {
 				if (lastChatsound) {
 					lastChatsound.modifiers.push(modifier);
 				}
