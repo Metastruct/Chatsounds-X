@@ -24,6 +24,7 @@ async function streamHandler(queryString: string): Promise<ChatsoundResponse<str
 			}
 
 			stream.play();
+			await stream.listen();
 		}
 
 		return { success: true };
