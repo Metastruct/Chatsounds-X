@@ -3,6 +3,7 @@ import sleep from "sleep-promise";
 import { launch, getStream, Stream } from "puppeteer-stream";
 import log from "./log";
 import { ChatsoundsLookup } from "./ChatsoundsFetcher";
+import { Page } from "puppeteer";
 
 const Xvfb = require("xvfb"); // this doesnt like to be imported
 
@@ -80,12 +81,12 @@ export default class WorkerPool {
 		return { working: false, context: page };
 	}
 
-	private async getCachedStream(code: string): Promise<StreamResult | undefined> {
+	private async getCachedStream(json: string): Promise<StreamResult | undefined> {
 		for (const worker of this.workers) {
 			if (!worker.working) {
 				worker.working = true;
 
-				const promise: Promise<any> = worker.context.evaluate(code);
+				const promise: Promise<any> = worker.context.evaluate("HANDLE_STREAM(`" + json + "`);");
 				promise.finally(() => worker.working = false);
 
 				const stream: Stream = await getStream(worker.context, { audio: true, video: false, mimeType: "audio/ogg" });
@@ -98,12 +99,12 @@ export default class WorkerPool {
 		return undefined;
 	}
 
-	private async getTemporaryStream(code: string): Promise<StreamResult | undefined> {
+	private async getTemporaryStream(json: string): Promise<StreamResult | undefined> {
 		const worker: Worker | undefined = await this.newWorker();
 		if (worker) {
 			this.tmpWorkerCount++;
 
-			const promise: Promise<any> = worker.context.evaluate(code);
+			const promise: Promise<any> = worker.context.evaluate("HANDLE_STREAM(`" + json + "`);");
 			const stream: Stream = await getStream(worker.context, { audio: true, video: true });//video: false, mimeType: "audio/ogg" });
 			const close = async () => {
 				try {
@@ -134,8 +135,7 @@ export default class WorkerPool {
 	}
 
 	private processStreamQuery(query: string, lookup: ChatsoundsLookup): string {
-		query = this.sanitizeString(query);
-		return "HANDLE_STREAM(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
+		return JSON.stringify({ input: this.sanitizeString(query), lookup: lookup });
 	}
 
 	public async getStream(query: string, lookup: ChatsoundsLookup, timeout: number): Promise<StreamResult> {
@@ -143,15 +143,15 @@ export default class WorkerPool {
 			log(`Processing stream query: ${query}`);
 
 			const start = Date.now();
-			const code: string | undefined = this.processStreamQuery(query, lookup);
+			const json: string = this.processStreamQuery(query, lookup);
 
 			while (true) {
-				let res: StreamResult | undefined = await this.getCachedStream(code);
+				let res: StreamResult | undefined = await this.getCachedStream(json);
 				if (res && res.stream) return res;
 
 				// if none of the cached workers is available give a new temporary one
 				if (this.workers.length + this.tmpWorkerCount < this.maxWorkers) {
-					res = await this.getTemporaryStream(code);
+					res = await this.getTemporaryStream(json);
 					if (res && res.stream) return res;
 				}
 
@@ -171,18 +171,17 @@ export default class WorkerPool {
 	}
 
 	private processParseQuery(query: string, lookup: ChatsoundsLookup): string {
-		query = this.sanitizeString(query);
-		return "HANDLE_PARSE(`" + JSON.stringify({ input: query, lookup: lookup }) + "`);"
+		return JSON.stringify({ input: this.sanitizeString(query), lookup: lookup });
 	}
 
 	public async parse(query: string, lookup: ChatsoundsLookup): Promise<ParseResult> {
 		try {
 			log(`Processing parse query: ${query}`);
 
-			const code: string = this.processParseQuery(query, lookup);
+			const json: string = this.processParseQuery(query, lookup);
 			const worker: Worker | undefined = await this.newWorker();
 			if (worker) {
-				const result = await worker.context.evaluate(code);
+				const result = await worker.context.evaluate("HANDLE_PARSE(`" + json + "`);");
 				worker.context.close(); // don't await close, send the result right away
 				return {
 					result: result,

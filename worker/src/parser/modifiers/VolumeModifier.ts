@@ -1,4 +1,4 @@
-import Stream from "../../webaudio/Stream";
+import * as Tone from "tone";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class VolumeModifier implements IChatsoundModifier {
@@ -21,7 +21,7 @@ export default class VolumeModifier implements IChatsoundModifier {
 		}
 	}
 
-	processStream(stream: Stream): void {
+	processAudio(player: Tone.Player): void {
 
 	}
 }

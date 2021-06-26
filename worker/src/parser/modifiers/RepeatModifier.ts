@@ -1,4 +1,4 @@
-import Stream from "../../webaudio/Stream";
+import * as Tone from "tone";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class RepeatModifier implements IChatsoundModifier {
@@ -17,7 +17,7 @@ export default class RepeatModifier implements IChatsoundModifier {
 		}
 	}
 
-	processStream(stream: Stream): void {
-		stream.maxLoop = this.value;
+	processAudio(player: Tone.Player): void {
+
 	}
 }
