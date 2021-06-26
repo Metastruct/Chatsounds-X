@@ -1,4 +1,4 @@
-import Stream from "../webaudio/Stream";
+import * as Tone from "tone";
 
 export interface IChatsoundModifier {
 	name: string;
@@ -7,7 +7,7 @@ export interface IChatsoundModifier {
 	value: any;
 	isScoped: boolean;
 	process(strArgs: Array<string>): void;
-	processStream(stream: Stream): void;
+	processAudio(player: Tone.Player): void;
 }
 
 export class ChatsoundContextModifier {
