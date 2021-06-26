@@ -1,3 +1,5 @@
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export default class Stream {
 	// general
 	public buffer: AudioBuffer;
@@ -45,7 +47,7 @@ export default class Stream {
 		this.url = url;
 	}
 
-	public play(): void {
+	public play(): void{
 		this.position = 0;
 		this.paused = false;
 	}
@@ -56,6 +58,19 @@ export default class Stream {
 		}
 
 		this.paused = true;
+	}
+
+	public async listen(): Promise<void> {
+		return new Promise(async (resolve) => {
+			while (true) {
+				if (this.donePlaying) {
+					resolve();
+					return;
+				}
+
+				await sleep(100);
+			}
+		})
 	}
 
 	public useFFT(_: boolean): void {

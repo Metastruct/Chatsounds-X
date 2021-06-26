@@ -47,7 +47,18 @@ export default class WorkerPool {
 		this.browser = await launch({
 			headless: false,
 			defaultViewport: undefined,
-			args: ["--no-sandbox", `--display=${xvfb._display}`],
+			ignoreDefaultArgs: ["--mute-audio"],
+			args: [
+				"--no-sandbox",
+				`--display=${xvfb._display}`,
+				"--use-fake-ui-for-media-stream",
+				"--use-fake-device-for-media-stream",
+				"--allow-file-access",
+				"--autoplay-policy=no-user-gesture-required",
+				"--disable-features=AutoplayIgnoreWebAudio",
+				"--enable-usermedia-screen-capturing",
+				"--allow-http-screen-capture",
+			],
 		});
 
 		for (let i = 0; i < cachedWorkers; i++) {
@@ -93,7 +104,7 @@ export default class WorkerPool {
 			this.tmpWorkerCount++;
 
 			const promise: Promise<any> = worker.context.evaluate(code);
-			const stream: Stream = await getStream(worker.context, { audio: true, video: false, mimeType: "audio/ogg" });
+			const stream: Stream = await getStream(worker.context, { audio: true, video: true });//video: false, mimeType: "audio/ogg" });
 			const close = async () => {
 				try {
 					if (!stream.destroyed) {
