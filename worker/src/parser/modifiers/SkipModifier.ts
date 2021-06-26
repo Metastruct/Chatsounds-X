@@ -1,3 +1,4 @@
+import Stream from "../../webaudio/Stream";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class SkipModifier implements IChatsoundModifier {
@@ -16,5 +17,9 @@ export default class SkipModifier implements IChatsoundModifier {
 		} else {
 			this.value = value;
 		}
+	}
+
+	processStream(stream: Stream): void {
+
 	}
 }

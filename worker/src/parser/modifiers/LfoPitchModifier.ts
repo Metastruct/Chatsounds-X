@@ -1,3 +1,4 @@
+import Stream from "../../webaudio/Stream";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class LfoPitchModifier implements IChatsoundModifier {
@@ -15,5 +16,10 @@ export default class LfoPitchModifier implements IChatsoundModifier {
 
 	process(strArgs: Array<string>): void {
 		this.value = [this.castArgToNum(strArgs[0]), this.castArgToNum(strArgs[1])];
+	}
+
+	processStream(stream: Stream): void {
+		stream.lfoPitchAmount = this.value[0];
+		stream.lfoPitchTime = this.value[1];
 	}
 }
