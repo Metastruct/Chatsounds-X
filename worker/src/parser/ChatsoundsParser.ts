@@ -43,14 +43,14 @@ export default class ChatsoundsParser {
 
 	private buildModifierPatterns(modifierClasses: Array<any>): void {
 		const instances: Array<IChatsoundModifier> = modifierClasses.map(x => new x[1]());
-		const modernPattern: string = "\\)?:(" + instances
+		const modernPattern: string = ":(" + instances
 			.filter(modifier => modifier.name.length > 0)
 			.map(modifier => modifier.name)
 			.join("|") + ")(\\(([0-9.\\s,-]+)\\))?";
-		const legacyPattern: string = "\\)?(" + instances
+		const legacyPattern: string = "(" + instances
 			.filter(modifier => modifier.legacyCharacter)
 			.map(modifier => modifier.escapeLegacy ? "\\" + modifier.legacyCharacter : modifier.legacyCharacter)
-			.join("|") + ")([0-9]+)?";
+			.join("|") + ")([0-9]+)";
 
 		this.patternStartsWith = new RegExp(`^(?:${modernPattern})|^(?:${legacyPattern})`, "giu");
 		this.patternIncludes = new RegExp(`(?:${modernPattern})|(?:${legacyPattern})`, "giu");
@@ -130,8 +130,6 @@ export default class ChatsoundsParser {
 		return chunkStartIndex + chunkScopeIndex + 1;
 	}
 
-	// This returns the lowest level context modifiers so each potential chatsound is processed only ONCE
-	// we later gather top level context modifiers and apply them to their children contexts so nothing is lost
 	private parseContexts(input: string): Array<ChatsoundModifierContext> {
 		const contexts: Array<ChatsoundModifierContext> = [];
 
@@ -172,8 +170,8 @@ export default class ChatsoundsParser {
 
 				const parentCtx: ChatsoundModifierContext | undefined = depthCache.get(curDepth - 1);
 				if (parentCtx) {
+					parentCtx.content = parentCtx.content.substring(ctx.content.length);
 					ctx.parentContext = parentCtx;
-					parentCtx.isParent = true;
 				}
 
 				contexts.push(ctx);
@@ -181,29 +179,29 @@ export default class ChatsoundsParser {
 				curDepth--;
 			} else {
 				ctx.append(char);
-			}
 
-			// we check in case we have a modifier thats not part of a scope
-			const [modifiers, len] = this.parseModifiers(input, i + 1);
-			if (modifiers.length > 0) {
-				let index: number = this.getLastDelimiterIndex(input.substring(0, i));
-				if (index === -1) {
-					index = 0;
+				// we check in case we have a modifier thats not part of a scope
+				const [modifiers, len] = this.parseModifiers(input, i + 1);
+				if (modifiers.length > 0) {
+					let index: number = this.getLastDelimiterIndex(input.substring(0, i));
+					if (index === -1) {
+						index = 0;
+					}
+
+					const chunk: string = input.substring(index, i + 1).replace(")", "").replace("(", "").trim();
+					const newCtx: ChatsoundModifierContext = new ChatsoundModifierContext(chunk, modifiers, false);
+					ctx.content = ctx.content.substring(chunk.length);
+					newCtx.parentContext = ctx;
+
+					contexts.push(newCtx);
+
+					// skip the chars that are part of the modifiers
+					i = i + len;
 				}
-
-				const chunk: string = input.substring(index, i + 1).replace(")", "").replace("(", "").trim();
-				const newCtx: ChatsoundModifierContext = new ChatsoundModifierContext(chunk, modifiers, false);
-				newCtx.parentContext = ctx;
-				ctx.isParent = true;
-
-				contexts.push(newCtx);
-
-				// skip the chars that are part of the modifiers
-				i = i + len;
 			}
 		}
 
-		return contexts.filter(ctx => !ctx.isParent);
+		return contexts;
 	}
 
 	private applyModifiers(chatsounds: Array<Chatsound>, modifiers: Array<IChatsoundModifier>): void {

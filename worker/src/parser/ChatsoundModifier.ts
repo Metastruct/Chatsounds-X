@@ -13,13 +13,11 @@ export class ChatsoundContextModifier {
 	public content: string;
 	public modifiers: Array<IChatsoundModifier>;
 	public parentContext?: ChatsoundContextModifier;
-	public isParent: boolean;
 	public illegalCharPattern: RegExp;
 
 	constructor(content: string = "", modifiers: Array<IChatsoundModifier> = [], isScoped: boolean = false) {
 		this.content = content;
 		this.modifiers = modifiers;
-		this.isParent = false;
 		this.isScoped = isScoped;
 		this.illegalCharPattern = /[()!?]+/g;
 
