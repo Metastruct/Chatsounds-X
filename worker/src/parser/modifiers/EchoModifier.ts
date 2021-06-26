@@ -1,3 +1,4 @@
+import Stream from "../../webaudio/Stream";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class EchoModifier implements IChatsoundModifier {
@@ -15,5 +16,11 @@ export default class EchoModifier implements IChatsoundModifier {
 
 	process(strArgs: Array<string>): void {
 		this.value = [this.castArgToNum(strArgs[0]), this.castArgToNum(strArgs[1])];
+	}
+
+	processStream(stream: Stream): void {
+		stream.setUseEcho(true);
+		stream.setEchoDelay(this.value[1]);
+		stream.echoFeedback = this.value[0];
 	}
 }

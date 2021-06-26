@@ -1,3 +1,5 @@
+import Stream from "../webaudio/Stream";
+
 export interface IChatsoundModifier {
 	name: string;
 	legacyCharacter?: string;
@@ -5,6 +7,7 @@ export interface IChatsoundModifier {
 	value: any;
 	isScoped: boolean;
 	process(strArgs: Array<string>): void;
+	processStream(stream: Stream): void;
 }
 
 export class ChatsoundContextModifier {

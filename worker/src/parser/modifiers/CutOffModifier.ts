@@ -1,3 +1,4 @@
+import Stream from "../../webaudio/Stream";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class CutOffModifier implements IChatsoundModifier {
@@ -15,5 +16,9 @@ export default class CutOffModifier implements IChatsoundModifier {
 		} else {
 			this.value = value;
 		}
+	}
+
+	processStream(stream: Stream): void {
+
 	}
 }

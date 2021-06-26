@@ -1,3 +1,4 @@
+import Stream from "../../webaudio/Stream";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
 export default class RealmModifier implements IChatsoundModifier {
@@ -7,5 +8,9 @@ export default class RealmModifier implements IChatsoundModifier {
 
 	process(strArgs: Array<string>): void {
 		this.value = strArgs[0];
+	}
+
+	processStream(stream: Stream): void {
+
 	}
 }

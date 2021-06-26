@@ -173,7 +173,7 @@ export default class WebAudio {
 		this.audio.destination.disconnect();
 	}
 
-	public async createStream( id: string, url: string, skipCache?: boolean): Promise<Stream> {
+	public async createStream(id: string, url: string, skipCache?: boolean): Promise<Stream> {
 		if (skipCache === undefined)
 			skipCache = false;
 
