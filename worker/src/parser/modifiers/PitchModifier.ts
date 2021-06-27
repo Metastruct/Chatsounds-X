@@ -10,7 +10,7 @@ export default class PitchModifier implements IChatsoundModifier {
 	process(strArgs: Array<string>): void {
 		const value: number = parseFloat(strArgs[0]);
 		if (isNaN(value)) {
-			this.value = 1;
+			this.value = Math.min(Math.max(value, 0), 100);
 			return;
 		}
 
@@ -18,6 +18,7 @@ export default class PitchModifier implements IChatsoundModifier {
 	}
 
 	processAudio(player: Tone.Player): void {
-
+		const pitchShift = new Tone.PitchShift(this.value).toDestination();
+		player.connect(pitchShift);
 	}
 }
