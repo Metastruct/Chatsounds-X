@@ -1,5 +1,6 @@
 import * as Tone from "tone";
 import Chatsound from "../parser/Chatsound";
+import { IChatsoundModifier } from "../parser/ChatsoundModifier";
 
 const MAX_SOUND_DURATION: number = 300000;
 const bufferCache: Map<string, Tone.ToneAudioBuffer> = new Map<string, Tone.ToneAudioBuffer>();
@@ -22,10 +23,12 @@ export class ChatsoundAudioNode {
 				return;
 			}
 
-			this.buffer.onload = resolve;
+			this.buffer.onload = (loadedBuffer) => {
+				bufferCache.set(this.chatsound.url, loadedBuffer);
+				resolve(loadedBuffer);
+			}
 		});
 
-		bufferCache.set(this.chatsound.url, buffer);
 		return buffer;
 	}
 
@@ -46,17 +49,19 @@ export class ChatsoundAudioNode {
 					this.tooLongWarning();
 					resolve();
 				}
-			}, MAX_SOUND_DURATION)
-			player.onstop = () => resolve();
+			}, MAX_SOUND_DURATION);
+
+			setTimeout(resolve, player.buffer.duration * 1000)
 		});
 	}
 
 	public async process(): Promise<void> {
 		const buffer: Tone.ToneAudioBuffer = await this.resolveBuffer();
-		const ply: Tone.Player = new Tone.Player(buffer).toDestination();
+		const ply: Tone.Player = new Tone.Player(buffer.slice(0)); // slice(0) to get a copy and not modify the original buffer
 
-		for (const modifier of this.chatsound.modifiers) {
-			modifier.processAudio(ply);
+		for (let i = 0; i < this.chatsound.modifiers.length; i++) {
+			const modifier: IChatsoundModifier = this.chatsound.modifiers[i];
+			modifier.processAudio(ply, i === this.chatsound.modifiers.length - 1);
 		}
 
 		ply.start();
