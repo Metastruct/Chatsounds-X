@@ -64,6 +64,10 @@ export class ChatsoundAudioNode {
 			modifier.processAudio(ply, i === this.chatsound.modifiers.length - 1);
 		}
 
+		if (this.chatsound.modifiers.length === 0) {
+			ply.toDestination();
+		}
+
 		ply.start();
 		await this.listen(ply);
 	}
