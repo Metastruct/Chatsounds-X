@@ -1,6 +1,7 @@
 import * as Tone from "tone";
 import { IChatsoundModifier } from "../ChatsoundModifier";
 
+const MAX_VOLUME = 12;
 export default class VolumeModifier implements IChatsoundModifier {
 	name: string = "volume";
 	value: number = 100;
@@ -14,20 +15,29 @@ export default class VolumeModifier implements IChatsoundModifier {
 			this.value = 1;
 		} else if (value < 0) { // negative volume ?
 			this.value = 0;
-		} else if (legacy && value > 500) { // handle max volume in legacy mode "awdawd^999999"
-			this.value = 5;
-		} else if (!legacy && value > 5) { // handle max volume "awdawd:volume(99999)"
-			this.value = 5
+		} else if ((legacy && value > MAX_VOLUME * 100) || (!legacy && value > MAX_VOLUME)) { // handle max volume
+			this.value = MAX_VOLUME;
 		} else {
 			this.value = legacy ? value / 100 : value;
 		}
 	}
 
 	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
-		player.volume.value = this.value;
-
-		if (isLastToProcess) {
-			player.toDestination();
+		const baseVolume: number = -12;
+		let internalValue: number = this.value;
+		if (this.value > 0 && this.value < 1) {
+			internalValue = baseVolume - (1 - this.value) * 20;
+		} else if (this.value === 0) {
+			internalValue = -100;
+		}else {
+			internalValue = baseVolume + this.value * 5;
 		}
+
+		let vol: Tone.Volume = new Tone.Volume(internalValue);
+		if (isLastToProcess) {
+			vol = vol.toDestination();
+		}
+
+		player.connect(vol);
 	}
 }
