@@ -8,20 +8,26 @@ export default class VolumeModifier implements IChatsoundModifier {
 	escapeLegacy: boolean = true;
 	isScoped: boolean = false;
 
-	process(strArgs: Array<string>): void {
+	process(strArgs: Array<string>, legacy: boolean): void {
 		const value: number = parseFloat(strArgs[0]);
 		if (isNaN(value)) {
-			this.value = 100;
-		} else if (value < 0) {
 			this.value = 1;
-		} else if (value > 300) {
-			this.value = 300;
+		} else if (value < 0) { // negative volume ?
+			this.value = 0;
+		} else if (legacy && value > 500) { // handle max volume in legacy mode "awdawd^999999"
+			this.value = 5;
+		} else if (!legacy && value > 5) { // handle max volume "awdawd:volume(99999)"
+			this.value = 5
 		} else {
-			this.value = value;
+			this.value = legacy ? value / 100 : value;
 		}
 	}
 
-	processAudio(player: Tone.Player): void {
+	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+		player.volume.value = this.value;
 
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }

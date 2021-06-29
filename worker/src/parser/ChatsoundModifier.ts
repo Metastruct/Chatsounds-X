@@ -6,8 +6,8 @@ export interface IChatsoundModifier {
 	escapeLegacy?: boolean;
 	value: any;
 	isScoped: boolean;
-	process(strArgs: Array<string>): void;
-	processAudio(player: Tone.Player): void;
+	process(strArgs: Array<string>, legacy: boolean): void;
+	processAudio(player: Tone.Player, isLastToProcess: boolean): void;
 }
 
 export class ChatsoundContextModifier {

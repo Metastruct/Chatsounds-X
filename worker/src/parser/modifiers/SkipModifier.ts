@@ -8,7 +8,7 @@ export default class SkipModifier implements IChatsoundModifier {
 	escapeLegacy: boolean = true;
 	isScoped: boolean = false;
 
-	process(strArgs: Array<string>): void {
+	process(strArgs: Array<string>, legacy: boolean): void {
 		const value: number = parseFloat(strArgs[0]);
 		if (isNaN(value)) {
 			this.value = 0;
@@ -19,7 +19,6 @@ export default class SkipModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player): void {
-
+	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
 	}
 }

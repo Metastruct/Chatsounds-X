@@ -14,11 +14,10 @@ export default class EchoModifier implements IChatsoundModifier {
 		return n;
 	}
 
-	process(strArgs: Array<string>): void {
+	process(strArgs: Array<string>, legacy: boolean): void {
 		this.value = [this.castArgToNum(strArgs[0]), this.castArgToNum(strArgs[1])];
 	}
 
-	processAudio(player: Tone.Player): void {
-
+	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
 	}
 }

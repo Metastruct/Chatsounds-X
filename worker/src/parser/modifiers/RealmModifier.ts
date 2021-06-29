@@ -6,11 +6,10 @@ export default class RealmModifier implements IChatsoundModifier {
 	value: string = "";
 	isScoped: boolean = false;
 
-	process(strArgs: Array<string>): void {
+	process(strArgs: Array<string>, legacy: boolean): void {
 		this.value = strArgs[0];
 	}
 
-	processAudio(player: Tone.Player): void {
-
+	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
 	}
 }
