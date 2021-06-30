@@ -1,16 +1,6 @@
-import * as Tone from "tone";
+import IChatsoundModifier from "../modifiers/IChatsoundModifier";
 
-export interface IChatsoundModifier {
-	name: string;
-	legacyCharacter?: string;
-	escapeLegacy?: boolean;
-	value: any;
-	isScoped: boolean;
-	process(strArgs: Array<string>, legacy: boolean): void;
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void;
-}
-
-export class ChatsoundContextModifier {
+export default class ChatsoundContextModifier {
 	private isScoped: boolean;
 
 	public content: string;

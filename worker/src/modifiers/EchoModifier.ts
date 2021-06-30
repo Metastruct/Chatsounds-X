@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class EchoModifier implements IChatsoundModifier {
 	name: string = "echo";
@@ -18,6 +18,6 @@ export default class EchoModifier implements IChatsoundModifier {
 		this.value = [this.castArgToNum(strArgs[0]), this.castArgToNum(strArgs[1])];
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
 	}
 }

@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class CutOffModifier implements IChatsoundModifier {
 	name: string = "cutoff";
@@ -18,6 +18,11 @@ export default class CutOffModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+		opts.offset = player.buffer.duration - this.value;
+
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }

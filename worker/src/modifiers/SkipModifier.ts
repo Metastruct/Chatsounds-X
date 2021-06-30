@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class SkipModifier implements IChatsoundModifier {
 	name: string = "skip";
@@ -19,6 +19,11 @@ export default class SkipModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+		opts.time = this.value;
+
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }

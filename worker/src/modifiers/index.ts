@@ -7,6 +7,7 @@ import VolumeModifier from "./VolumeModifier";
 import LfoPitchModifier from "./LfoPitchModifier";
 import CutOffModifier from "./CutOffModifier";
 import SkipModifier from "./SkipModifier";
+import DurationModifier from "./DurationModifier";
 
 export {
 	EchoModifier,
@@ -18,11 +19,11 @@ export {
 	LfoPitchModifier,
 	CutOffModifier,
 	SkipModifier,
+	DurationModifier,
 };
 
 // TODO: IMPLEMENT THOSE
 /*
 ["%%"] = "legacypitch",
 ["^^"] = "legacyvolume",
-["="] = "legacyduration",
 */

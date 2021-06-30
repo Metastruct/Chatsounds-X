@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class SelectModifier implements IChatsoundModifier {
 	escapeLegacy?: boolean | undefined;
@@ -17,6 +17,6 @@ export default class SelectModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
 	}
 }
