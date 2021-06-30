@@ -3,12 +3,12 @@ import Chatsound from "../parser/Chatsound";
 import { ChatsoundAudioNode } from "./ChatsoundAudioNode";
 
 export default class ChatsoundsAudioController {
-	public async process(chatsounds: Array<Chatsound>): Promise<void> {
+	public async process(stream: MediaStream, chatsounds: Array<Chatsound>): Promise<void> {
 		await Tone.start();
 
 		const audioNodes: Array<ChatsoundAudioNode> = chatsounds.map(cs => new ChatsoundAudioNode(cs));
 		for (const node of audioNodes) {
-			await node.process();
+			await node.process(stream);
 		}
 	}
 }

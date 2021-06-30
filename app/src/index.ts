@@ -1,12 +1,12 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
-import schedule from "node-schedule";
-import WorkerPool, { ParseResult, StreamResult } from "./WorkerPool";
-import ChatsoundsFetcher from "./ChatsoundsFetcher";
-import log from "./log";
 import { Stream } from "stream";
-import guid from "guid";
+import schedule from "node-schedule";
+import log from "./log";
+import StreamServer from "./StreamServer";
+import ChatsoundsWorkerPool, { ParseResult, StreamResult } from "./ChatsoundsWorkerPool";
+import ChatsoundsFetcher from "./ChatsoundsFetcher";
 
 const BAD_REQUEST: number = 400;
 const INTERNAL_ERROR: number = 500;
@@ -41,8 +41,7 @@ function error(res: any, err: string): any {
 	return res.send({ success: false, error: err })
 }
 
-const streams: Map<string, Stream> = new Map<string, Stream>();
-const workerPool: WorkerPool = new WorkerPool(config.cachedWorkers, config.maxWorkers);
+const chatsoundsPool: ChatsoundsWorkerPool = new ChatsoundsWorkerPool(new StreamServer(HTTP_SERVER), config.cachedWorkers, config.maxWorkers);
 HTTP_SERVER.get("/chatsounds/stream", async (request, result) => {
 	result.setHeader("Content-Type", "application/json");
 
@@ -54,15 +53,13 @@ HTTP_SERVER.get("/chatsounds/stream", async (request, result) => {
 		return result.send({ success: false, error: "The 'query' parameter was not specified" });
 	}
 
-	const res: StreamResult = await workerPool.getStream(query, fetcher.getLookup(), config.queryTimeout);
+	const res: StreamResult = await chatsoundsPool.createStream(query, fetcher.getLookup(), config.queryTimeout);
 	if (res.error) return error(result, res.error.message);
 	if (!res.stream) return error(result, "\'stream\' was undefined");
 
 	if (getUrl) {
-		const id: string = guid.create().toString();
-		streams.set(id, res.stream);
 		result.status(SUCCESS);
-		return result.send({ success: true, url: "/chatsounds/stream/" + id });
+		return result.send({ success: true, url: "/chatsounds/stream/" + res.id });
 	}
 
 	result.status(SUCCESS_PARTIAL)
@@ -73,7 +70,7 @@ HTTP_SERVER.get("/chatsounds/stream", async (request, result) => {
 
 HTTP_SERVER.get("/chatsounds/stream/:id", async (request, result) => {
 	const streamId: string = request.params["id"];
-	const stream: Stream | undefined = streams.get(streamId);
+	const stream: Stream | undefined = await chatsoundsPool.tryGetStream(streamId, config.queryTimeout);
 	if (!stream) {
 		result.status(BAD_REQUEST);
 		return result.send({ success: false, error: `Stream with id \'${streamId}\' does not exist` });
@@ -95,7 +92,7 @@ HTTP_SERVER.get("/chatsounds/parse", async (request, result) => {
 		return result.send({ success: false, error: "The 'query' parameter was not specified" });
 	}
 
-	const res: ParseResult = await workerPool.parse(query, fetcher.getLookup());
+	const res: ParseResult = await chatsoundsPool.parse(query, fetcher.getLookup());
 	if (res.error) return error(result, res.error.message);
 	if (!res.result) return error(result, "\'result\' was undefined");
 

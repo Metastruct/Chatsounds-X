@@ -54,9 +54,10 @@ export class ChatsoundAudioNode {
 		});
 	}
 
-	public async process(): Promise<void> {
+	public async process(stream: MediaStream): Promise<void> {
 		const buffer: Tone.ToneAudioBuffer = await this.resolveBuffer();
 		const ply: Tone.Player = new Tone.Player(buffer.slice(0)); // slice(0) to get a copy and not modify the original buffer
+		ply.context.createMediaStreamSource(stream);
 
 		const opts: ChatsoundModifierOptions = {};
 		for (let i = 0; i < this.chatsound.modifiers.length; i++) {
