@@ -17,6 +17,10 @@ export default class SelectModifier implements IChatsoundModifier {
 		}
 	}
 
+	// no audio processing here
 	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }

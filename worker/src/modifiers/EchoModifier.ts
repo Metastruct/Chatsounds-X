@@ -19,5 +19,8 @@ export default class EchoModifier implements IChatsoundModifier {
 	}
 
 	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }
