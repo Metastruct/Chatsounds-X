@@ -10,6 +10,10 @@ export default class RealmModifier implements IChatsoundModifier {
 		this.value = strArgs[0];
 	}
 
+	// no audio processing here
 	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }
