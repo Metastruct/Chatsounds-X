@@ -1,7 +1,8 @@
 import { ChatsoundsLookup } from "..";
 import Chatsound from "./Chatsound";
-import { ChatsoundContextModifier as ChatsoundModifierContext, IChatsoundModifier } from "./ChatsoundModifier";
-import * as modifiers from "./modifiers";
+import * as modifiers from "../modifiers";
+import IChatsoundModifier from "../modifiers/IChatsoundModifier";
+import ChatsoundContextModifier from "./ChatsoundContextModifier";
 
 /*
 	PROBLEMS:
@@ -84,7 +85,7 @@ export default class ChatsoundsParser {
 	public parse(input: string): Array<Chatsound> {
 		let chatsounds: Array<Chatsound> = [];
 
-		const contexts: Array<ChatsoundModifierContext> = this.parseContexts(input);
+		const contexts: Array<ChatsoundContextModifier> = this.parseContexts(input);
 		for (const ctx of contexts) {
 			chatsounds = chatsounds.concat(this.parseProcessedContext(ctx));
 		}
@@ -130,8 +131,8 @@ export default class ChatsoundsParser {
 		return chunkStartIndex + chunkScopeIndex + 1;
 	}
 
-	private parseContexts(input: string): Array<ChatsoundModifierContext> {
-		const contexts: Array<ChatsoundModifierContext> = [];
+	private parseContexts(input: string): Array<ChatsoundContextModifier> {
+		const contexts: Array<ChatsoundContextModifier> = [];
 
 		const volMarksMatch: RegExpMatchArray | null = input.match(/[!1]+$/);
 		if (volMarksMatch) {
@@ -139,14 +140,14 @@ export default class ChatsoundsParser {
 			input = `(${input.substring(0, input.length - len)}):volume(${Math.min(100 + len * 20, 300)})`;
 		}
 
-		let depthCache: Map<number, ChatsoundModifierContext> = new Map<number, ChatsoundModifierContext>();
+		let depthCache: Map<number, ChatsoundContextModifier> = new Map<number, ChatsoundContextModifier>();
 		let curDepth: number = 0;
 		for (let i = 0; i < input.length; i++) {
 			const char: string = input[i];
 
-			let ctx: ChatsoundModifierContext | undefined = depthCache.get(curDepth);
+			let ctx: ChatsoundContextModifier | undefined = depthCache.get(curDepth);
 			if (!ctx) {
-				ctx = new ChatsoundModifierContext();
+				ctx = new ChatsoundContextModifier();
 				ctx.setScoped(true);
 				depthCache.set(curDepth, ctx);
 			}
@@ -168,7 +169,7 @@ export default class ChatsoundsParser {
 					i = i + len;
 				}
 
-				const parentCtx: ChatsoundModifierContext | undefined = depthCache.get(curDepth - 1);
+				const parentCtx: ChatsoundContextModifier | undefined = depthCache.get(curDepth - 1);
 				if (parentCtx) {
 					parentCtx.content = parentCtx.content.substring(ctx.content.length);
 					ctx.parentContext = parentCtx;
@@ -189,7 +190,7 @@ export default class ChatsoundsParser {
 					}
 
 					const chunk: string = input.substring(index, i + 1).replace(")", "").replace("(", "").trim();
-					const newCtx: ChatsoundModifierContext = new ChatsoundModifierContext(chunk, modifiers, false);
+					const newCtx: ChatsoundContextModifier = new ChatsoundContextModifier(chunk, modifiers, false);
 					ctx.content = ctx.content.substring(chunk.length);
 					newCtx.parentContext = ctx;
 
@@ -219,7 +220,7 @@ export default class ChatsoundsParser {
 		}
 	}
 
-	private parseProcessedContext(ctx: ChatsoundModifierContext): Array<Chatsound> {
+	private parseProcessedContext(ctx: ChatsoundContextModifier): Array<Chatsound> {
 		const chatsounds: Array<Chatsound> = [];
 		const modifiers: Array<IChatsoundModifier> = ctx.getAllModifiers();
 

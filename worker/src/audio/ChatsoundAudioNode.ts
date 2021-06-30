@@ -1,10 +1,9 @@
 import * as Tone from "tone";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "../modifiers/IChatsoundModifier";
 import Chatsound from "../parser/Chatsound";
-import { IChatsoundModifier } from "../parser/ChatsoundModifier";
 
 const MAX_SOUND_DURATION: number = 300000;
 const bufferCache: Map<string, Tone.ToneAudioBuffer> = new Map<string, Tone.ToneAudioBuffer>();
-
 export class ChatsoundAudioNode {
 	private buffer: Tone.ToneAudioBuffer;
 	private chatsound: Chatsound;
@@ -41,7 +40,7 @@ export class ChatsoundAudioNode {
 	}
 
 	// waits for a player to be done playing
-	private async listen(player: Tone.Player): Promise<void> {
+	private async listen(player: Tone.Player, duration?: number): Promise<void> {
 		return new Promise<void>(resolve => {
 			setTimeout(() => {
 				if (player.state !== "stopped") {
@@ -51,7 +50,7 @@ export class ChatsoundAudioNode {
 				}
 			}, MAX_SOUND_DURATION);
 
-			setTimeout(resolve, player.buffer.duration * 1000)
+			setTimeout(resolve, duration ? duration : player.buffer.duration * 1000)
 		});
 	}
 
@@ -59,16 +58,21 @@ export class ChatsoundAudioNode {
 		const buffer: Tone.ToneAudioBuffer = await this.resolveBuffer();
 		const ply: Tone.Player = new Tone.Player(buffer.slice(0)); // slice(0) to get a copy and not modify the original buffer
 
+		const opts: ChatsoundModifierOptions = {};
 		for (let i = 0; i < this.chatsound.modifiers.length; i++) {
 			const modifier: IChatsoundModifier = this.chatsound.modifiers[i];
-			modifier.processAudio(ply, i === this.chatsound.modifiers.length - 1);
+			modifier.processAudio(ply, opts, i === this.chatsound.modifiers.length - 1);
 		}
 
 		if (this.chatsound.modifiers.length === 0) {
 			ply.toDestination();
 		}
 
-		ply.start();
-		await this.listen(ply);
+		let { time, offset, duration, loops } = opts;
+		if (!loops) loops = 1;
+		for (let i = 0; i < loops; i++) {
+			ply.start(time, offset, duration);
+			await this.listen(ply, duration?.valueOf() as number);
+		}
 	}
 }

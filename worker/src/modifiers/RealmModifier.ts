@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class RealmModifier implements IChatsoundModifier {
 	name: string = "realm";
@@ -10,6 +10,6 @@ export default class RealmModifier implements IChatsoundModifier {
 		this.value = strArgs[0];
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
 	}
 }

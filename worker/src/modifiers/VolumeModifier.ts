@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 const MAX_VOLUME = 12;
 export default class VolumeModifier implements IChatsoundModifier {
@@ -22,7 +22,7 @@ export default class VolumeModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
 		const baseVolume: number = -12;
 		let internalValue: number = this.value;
 		if (this.value > 0 && this.value < 1) {

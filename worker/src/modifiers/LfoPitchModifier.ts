@@ -1,9 +1,9 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class LfoPitchModifier implements IChatsoundModifier {
 	name: string = "lfopitch";
-	value: [number, number] = [100, 1000];
+	value: [number, number] = [100, 200];
 	isScoped: boolean = false;
 
 	private castArgToNum(input: string): number {
@@ -18,12 +18,17 @@ export default class LfoPitchModifier implements IChatsoundModifier {
 		this.value = [this.castArgToNum(strArgs[0]), this.castArgToNum(strArgs[1])];
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
-		const lfo: Tone.LFO = new Tone.LFO("1n", this.value[0], this.value[1]);
+	// This KILLS my windows audio driver for some reason, figure out why?
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+		/*const lfo: Tone.LFO = new Tone.LFO("1n", this.value[0], this.value[1]);
 		if (isLastToProcess) {
 			lfo.toDestination();
 		}
 
-		player.connect(lfo);
+		player.connect(lfo);*/
+
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }

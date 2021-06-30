@@ -1,5 +1,5 @@
 import * as Tone from "tone";
-import { IChatsoundModifier } from "../ChatsoundModifier";
+import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class RepeatModifier implements IChatsoundModifier {
 	name: string = "rep";
@@ -17,6 +17,11 @@ export default class RepeatModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+		opts.loops = this.value;
+
+		if (isLastToProcess) {
+			player.toDestination();
+		}
 	}
 }
