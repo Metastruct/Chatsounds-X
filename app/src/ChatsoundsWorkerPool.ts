@@ -1,23 +1,27 @@
 import path from "path";
 import sleep from "sleep-promise";
-import { launch, getStream, Stream } from "puppeteer-stream";
 import log from "./log";
 import { ChatsoundsLookup } from "./ChatsoundsFetcher";
-import { Page } from "puppeteer";
+import puppeteer, { Browser, Page } from "puppeteer";
+import { Stream } from "stream";
+import StreamServer from "./StreamServer";
+import guid from "guid";
 
 const Xvfb = require("xvfb"); // this doesnt like to be imported
 
-export type Worker = { working: boolean, context: any };
-export type StreamResult = { stream?: Stream, error?: Error };
+export type Worker = { working: boolean, context: Page };
+export type StreamResult = { stream?: Stream, id?: string, error?: Error };
 export type ParseResult = { result?: any, error?: Error };
 
-export default class WorkerPool {
+export default class ChatsoundsWorkerPool {
+	private streamServer: StreamServer;
 	private workers: Array<Worker> = [];
 	private maxWorkers: number;
 	private tmpWorkerCount: number;
-	private browser: any | undefined;
+	private browser: Browser | undefined;
 
-	constructor(cachedWorkers: number, maxWorkers: number) {
+	constructor(streamServer: StreamServer, cachedWorkers: number, maxWorkers: number) {
+		this.streamServer = streamServer;
 		this.maxWorkers = maxWorkers;
 		this.tmpWorkerCount = 0;
 
@@ -31,8 +35,7 @@ export default class WorkerPool {
 		const xvfb = new Xvfb({
 			silent: true,
 			reuse: true,
-			displayNum: Math.round(50 + Math.random() * 100),
-			//xvfb_args: ["-screen", "0", "800x600", "-ac"],
+			displayNum: Math.round(50 + Math.random() * 100), // pick a random screen number
 		});
 
 		try {
@@ -45,7 +48,7 @@ export default class WorkerPool {
 			}
 		}
 
-		this.browser = await launch({
+		this.browser = await puppeteer.launch({
 			headless: false,
 			defaultViewport: undefined,
 			ignoreDefaultArgs: ["--mute-audio"],
@@ -69,7 +72,19 @@ export default class WorkerPool {
 			this.workers.push(worker);
 		}
 
-		log("Worker pool initialized");
+		log("Chatsounds pool initialized");
+	}
+
+	private sanitizeString(str: string): string {
+		return decodeURIComponent(str).toLowerCase().replace(/\?+/g, "");
+	}
+
+	private processStreamQuery(id: string, query: string, lookup: ChatsoundsLookup): string {
+		return JSON.stringify({ id: id, input: this.sanitizeString(query), lookup: lookup });
+	}
+
+	private processParseQuery(query: string, lookup: ChatsoundsLookup): string {
+		return JSON.stringify({ input: this.sanitizeString(query), lookup: lookup });
 	}
 
 	private async newWorker(): Promise<Worker | undefined> {
@@ -81,77 +96,69 @@ export default class WorkerPool {
 		return { working: false, context: page };
 	}
 
-	private async getCachedStream(json: string): Promise<StreamResult | undefined> {
+	private async getCachedStream(id: string, json: string, timeout: number): Promise<StreamResult | undefined> {
 		for (const worker of this.workers) {
-			if (!worker.working) {
-				worker.working = true;
+			if (worker.working) continue;
 
-				const promise: Promise<any> = worker.context.evaluate("HANDLE_STREAM(`" + json + "`);");
-				promise.finally(() => worker.working = false);
+			worker.working = true;
+			worker.context.evaluate("HANDLE_STREAM(`" + json + "`);")
+				.finally(() => worker.working = false);
 
-				const stream: Stream = await getStream(worker.context, { audio: true, video: false, mimeType: "audio/ogg" });
-				return {
-					stream: stream,
-				};
-			}
+			const stream: Stream | undefined = await this.streamServer.tryGetStream(id, timeout);
+			if (!stream) return undefined;
+
+			return {
+				stream: stream,
+				id: id,
+			};
 		}
 
 		return undefined;
 	}
 
-	private async getTemporaryStream(json: string): Promise<StreamResult | undefined> {
+	private async getTemporaryStream(id: string, json: string, timeout: number): Promise<StreamResult | undefined> {
 		const worker: Worker | undefined = await this.newWorker();
 		if (worker) {
 			this.tmpWorkerCount++;
 
-			const promise: Promise<any> = worker.context.evaluate("HANDLE_STREAM(`" + json + "`);");
-			const stream: Stream = await getStream(worker.context, { audio: true, video: true });//video: false, mimeType: "audio/ogg" });
-			const close = async () => {
-				try {
-					if (!stream.destroyed) {
-						await stream.destroy();
+			worker.context.evaluate("HANDLE_STREAM(`" + json + "`);")
+				.finally(async () => {
+					try {
+						if (!worker.context.isClosed()) {
+							await worker.context.close();
+						}
+					} finally {
+						this.tmpWorkerCount--;
 					}
-
-					if (!worker.context.isClosed()) {
-						await worker.context.close();
-					}
-				} finally {
-					this.tmpWorkerCount--;
-				}
-			};
-
-			promise.finally(() => close());
+				});
 
 			return {
-				stream: stream,
+				stream: await this.streamServer.tryGetStream(id, timeout),
 			};
 		}
 
 		return undefined;
 	}
 
-	private sanitizeString(str: string): string {
-		return decodeURIComponent(str).toLowerCase().replace(/\?+/g, "");
+	public async tryGetStream(id: string, timeout: number): Promise<Stream | undefined> {
+		return await this.streamServer.tryGetStream(id, timeout);
 	}
 
-	private processStreamQuery(query: string, lookup: ChatsoundsLookup): string {
-		return JSON.stringify({ input: this.sanitizeString(query), lookup: lookup });
-	}
-
-	public async getStream(query: string, lookup: ChatsoundsLookup, timeout: number): Promise<StreamResult> {
+	public async createStream(query: string, lookup: ChatsoundsLookup, timeout: number): Promise<StreamResult> {
 		try {
 			log(`Processing stream query: ${query}`);
 
 			const start = Date.now();
-			const json: string = this.processStreamQuery(query, lookup);
+			const id: string = guid.create().toString();
+			const json: string = this.processStreamQuery(id, query, lookup);
 
 			while (true) {
-				let res: StreamResult | undefined = await this.getCachedStream(json);
+				let res: StreamResult | undefined = await this.getCachedStream(id, json, timeout);
 				if (res && res.stream) return res;
 
 				// if none of the cached workers is available give a new temporary one
 				if (this.workers.length + this.tmpWorkerCount < this.maxWorkers) {
-					res = await this.getTemporaryStream(json);
+					res = await this.getTemporaryStream(id, json, timeout);
 					if (res && res.stream) return res;
 				}
 
@@ -168,10 +175,6 @@ export default class WorkerPool {
 				error: err,
 			}
 		}
-	}
-
-	private processParseQuery(query: string, lookup: ChatsoundsLookup): string {
-		return JSON.stringify({ input: this.sanitizeString(query), lookup: lookup });
 	}
 
 	public async parse(query: string, lookup: ChatsoundsLookup): Promise<ParseResult> {
