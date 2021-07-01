@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import IChatsoundModifier, { ChatsoundModifierOptions } from "../modifiers/IChatsoundModifier";
 import Chatsound from "../parser/Chatsound";
 
-const MAX_SOUND_DURATION: number = 300000;
+const MAX_SOUND_DURATION: number = 60000;
 const bufferCache: Map<string, Tone.ToneAudioBuffer> = new Map<string, Tone.ToneAudioBuffer>();
 export class ChatsoundAudioNode {
 	private buffer: Tone.ToneAudioBuffer;
@@ -54,20 +54,17 @@ export class ChatsoundAudioNode {
 		});
 	}
 
-	public async process(stream: MediaStream): Promise<void> {
+	public async process(recorder: Tone.Recorder): Promise<void> {
 		const buffer: Tone.ToneAudioBuffer = await this.resolveBuffer();
 		const ply: Tone.Player = new Tone.Player(buffer.slice(0)); // slice(0) to get a copy and not modify the original buffer
-		ply.context.createMediaStreamSource(stream);
 
 		const opts: ChatsoundModifierOptions = {};
 		for (let i = 0; i < this.chatsound.modifiers.length; i++) {
 			const modifier: IChatsoundModifier = this.chatsound.modifiers[i];
-			modifier.processAudio(ply, opts, i === this.chatsound.modifiers.length - 1);
+			modifier.processAudio(ply, opts);
 		}
 
-		if (this.chatsound.modifiers.length === 0) {
-			ply.toDestination();
-		}
+		ply.connect(recorder);
 
 		let { time, offset, duration, loops } = opts;
 		if (!loops) loops = 1;

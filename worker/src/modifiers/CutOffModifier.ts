@@ -18,11 +18,7 @@ export default class CutOffModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		opts.offset = player.buffer.duration - this.value;
-
-		if (isLastToProcess) {
-			player.toDestination();
-		}
 	}
 }

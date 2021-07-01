@@ -19,11 +19,7 @@ export default class SkipModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		opts.time = this.value;
-
-		if (isLastToProcess) {
-			player.toDestination();
-		}
 	}
 }

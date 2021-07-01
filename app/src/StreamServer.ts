@@ -4,8 +4,6 @@ import { Server } from "socket.io";
 import { Stream } from "stream";
 import sleep from "sleep-promise";
 
-const ss = require("socket.io-stream");
-
 export default class StreamServer extends Server {
 	private streams: Map<string, Stream>;
 
@@ -13,14 +11,16 @@ export default class StreamServer extends Server {
 		super();
 
 		this.streams = new Map<string, Stream>();
-		this.attach(createServer(httpServer), {
+		this.listen(createServer(httpServer), {
 			pingInterval: 10000,
 			pingTimeout: 5000,
 			cookie: false
 		});
 
-		this.of("internal/stream").on("connection", socket => {
-			ss(socket).on("audio", (stream: Stream, data: { id: string; }) => {
+		this.on("debug", console.log);
+
+		this.of("/internal/stream").on("connection", socket => {
+			socket.on("audio", (stream: Stream, data: { id: string; }) => {
 				this.streams.set(data.id, stream);
 				stream.once("close", () => this.streams.delete(data.id));
 			});

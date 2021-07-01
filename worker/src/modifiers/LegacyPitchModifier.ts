@@ -22,7 +22,7 @@ export default class LegacyPitchModifier implements IChatsoundModifier {
 
 
 	// figure out a way to smooth pitch from min to max
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		/*let pitchShift: Tone.PitchShift = new Tone.PitchShift(1);
 		if (isLastToProcess) {
 			pitchShift = pitchShift.toDestination();
@@ -35,9 +35,5 @@ export default class LegacyPitchModifier implements IChatsoundModifier {
 
 		pitchShift.pitch = internalValue;
 		player.connect(pitchShift);*/
-
-		if (isLastToProcess) {
-			player.toDestination();
-		}
 	}
 }

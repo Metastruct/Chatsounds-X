@@ -7,19 +7,20 @@ type ChatsoundQuery = { input: string, lookup: ChatsoundsLookup, id: string };
 type ChatsoundResponse<T> = { success: boolean, result?: T, error?: string };
 export type ChatsoundsLookup = { [key: string]: Array<string> }
 
-const socket: Socket = io("http://localhost/internal/stream");
-socket.open();
-
+//const socket: Socket = io("http://localhost:6560/internal/stream").connect();
 const audioController: ChatsoundsAudioController = new ChatsoundsAudioController();
 function streamHandler(queryString: string): ChatsoundResponse<string> {
 	try {
 		const query: ChatsoundQuery = JSON.parse(queryString);
 		const parser: ChatsoundsParser = new ChatsoundsParser(query.lookup);
+		const chatsounds: Array<Chatsound> = parser.parse(query.input);
 
-		const stream = new MediaStream();
-		audioController.process(stream, parser.parse(query.input));
-		//stream.getAudioTracks()[0].
-		console.log(stream);
+		const stream = audioController.process(chatsounds);
+		/*if (socket.connected) {
+			socket.emit("audio", stream, { id: query.id });
+		} else {
+			socket.once("connect", () => socket.emit("audio", stream, { id: query.id }));
+		}*/
 
 		return { success: true };
 	} catch (err) {

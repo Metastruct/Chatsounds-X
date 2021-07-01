@@ -14,5 +14,5 @@ export default interface IChatsoundModifier {
 	value: any;
 	isScoped: boolean;
 	process(strArgs: Array<string>, legacy: boolean): void;
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void;
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void;
 }
