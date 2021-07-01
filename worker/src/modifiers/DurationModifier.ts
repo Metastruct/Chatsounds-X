@@ -19,11 +19,7 @@ export default class DurationModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		opts.duration = this.value * 1000; // convert to ms
-
-		if (isLastToProcess) {
-			player.toDestination();
-		}
 	}
 }

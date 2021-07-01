@@ -5,7 +5,6 @@
 	"main": "index.js",
 	"dependencies": {
 		"socket.io-client": "^4.1.2",
-		"socket.io-stream": "^0.9.1",
 		"tone": "^14.7.77"
 	},
 	"devDependencies": {

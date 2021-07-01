@@ -19,16 +19,12 @@ export default class LfoPitchModifier implements IChatsoundModifier {
 	}
 
 	// This KILLS my windows audio driver for some reason, figure out why?
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		/*const lfo: Tone.LFO = new Tone.LFO("1n", this.value[0], this.value[1]);
 		if (isLastToProcess) {
 			lfo.toDestination();
 		}
 
 		player.connect(lfo);*/
-
-		if (isLastToProcess) {
-			player.toDestination();
-		}
 	}
 }

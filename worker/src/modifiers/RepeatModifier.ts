@@ -17,11 +17,7 @@ export default class RepeatModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		opts.loops = this.value;
-
-		if (isLastToProcess) {
-			player.toDestination();
-		}
 	}
 }

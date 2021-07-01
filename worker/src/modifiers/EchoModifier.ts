@@ -18,9 +18,6 @@ export default class EchoModifier implements IChatsoundModifier {
 		this.value = [this.castArgToNum(strArgs[0]), this.castArgToNum(strArgs[1])];
 	}
 
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
-		if (isLastToProcess) {
-			player.toDestination();
-		}
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 	}
 }

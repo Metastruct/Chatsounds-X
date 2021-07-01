@@ -17,12 +17,8 @@ export default class PitchModifier implements IChatsoundModifier {
 		this.value = legacy ? value / 100 : value;
 	}
 
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		let pitchShift: Tone.PitchShift = new Tone.PitchShift(1);
-		if (isLastToProcess) {
-			pitchShift = pitchShift.toDestination();
-		}
-
 		if (this.value < 0) { // reverse track if pitch is negative
 			player.reverse = true;
 		}

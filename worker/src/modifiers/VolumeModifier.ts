@@ -22,7 +22,7 @@ export default class VolumeModifier implements IChatsoundModifier {
 		}
 	}
 
-	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions, isLastToProcess: boolean): void {
+	processAudio(player: Tone.Player, opts: ChatsoundModifierOptions): void {
 		const baseVolume: number = -12;
 		let internalValue: number = this.value;
 		if (this.value > 0 && this.value < 1) {
@@ -33,11 +33,7 @@ export default class VolumeModifier implements IChatsoundModifier {
 			internalValue = baseVolume + this.value * 5;
 		}
 
-		let vol: Tone.Volume = new Tone.Volume(internalValue);
-		if (isLastToProcess) {
-			vol = vol.toDestination();
-		}
-
+		const vol: Tone.Volume = new Tone.Volume(internalValue);
 		player.connect(vol);
 	}
 }
