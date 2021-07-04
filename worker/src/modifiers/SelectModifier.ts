@@ -2,7 +2,7 @@ import * as Tone from "tone";
 import IChatsoundModifier, { ChatsoundModifierOptions } from "./IChatsoundModifier";
 
 export default class SelectModifier implements IChatsoundModifier {
-	escapeLegacy?: boolean | undefined;
+	escapeLegacy: boolean = false;
 	value: number = 0;
 	name: string = "";
 	legacyCharacter: string = "#";
