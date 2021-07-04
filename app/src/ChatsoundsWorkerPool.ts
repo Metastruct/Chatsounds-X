@@ -55,7 +55,9 @@ export default class ChatsoundsWorkerPool {
 			ignoreDefaultArgs: ["--mute-audio"],
 			args: [
 				"--no-sandbox",
-				`--display=${xvfb._display}`,
+				`--display=${xvfb._display}`, // use xvfb
+
+				// audio stuff
 				"--use-fake-ui-for-media-stream",
 				"--use-fake-device-for-media-stream",
 				"--allow-file-access",
@@ -63,6 +65,8 @@ export default class ChatsoundsWorkerPool {
 				"--disable-features=AutoplayIgnoreWebAudio",
 				"--enable-usermedia-screen-capturing",
 				"--allow-http-screen-capture",
+
+				"--disable-web-security", // for CORS
 			],
 		});
 

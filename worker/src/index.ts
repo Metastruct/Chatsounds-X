@@ -7,7 +7,7 @@ type ChatsoundQuery = { input: string, lookup: ChatsoundsLookup, id: string };
 type ChatsoundResponse<T> = { success: boolean, result?: T, error?: string };
 export type ChatsoundsLookup = { [key: string]: Array<string> }
 
-//const socket: Socket = io("http://localhost:6560/internal/stream").connect();
+//const socket: Socket = io("ws://localhost:6560/internal/stream").connect();
 const audioController: ChatsoundsAudioController = new ChatsoundsAudioController();
 function streamHandler(queryString: string): ChatsoundResponse<string> {
 	try {

@@ -50,8 +50,8 @@ export default class ChatsoundsParser {
 			.join("|") + ")(\\(([0-9.\\s,-]+)\\))?";
 		const legacyPattern: string = "(" + instances
 			.filter(modifier => modifier.legacyCharacter)
-			.map(modifier => modifier.escapeLegacy ? "\\" + modifier.legacyCharacter : modifier.legacyCharacter)
-			.join("|") + ")([0-9]+)";
+			.map(modifier => modifier.escapeLegacy ? modifier.legacyCharacter?.split("").map(char => "\\" + char).join() : modifier.legacyCharacter)
+			.join("|") + ")([0-9.]+)";
 
 		this.patternStartsWith = new RegExp(`^(?:${modernPattern})|^(?:${legacyPattern})`, "giu");
 		this.patternIncludes = new RegExp(`(?:${modernPattern})|(?:${legacyPattern})`, "giu");

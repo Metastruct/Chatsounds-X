@@ -17,8 +17,6 @@ export default class StreamServer extends Server {
 			cookie: false
 		});
 
-		this.on("debug", console.log);
-
 		this.of("/internal/stream").on("connection", socket => {
 			socket.on("audio", (stream: Stream, data: { id: string; }) => {
 				this.streams.set(data.id, stream);
